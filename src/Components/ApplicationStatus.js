@@ -1,37 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const JobApplication = () => {
-  const [applications, setApplications] = useState([
-    {
-      id: 1,
-      date: '2024-08-29',
-      companyName: 'Google',
-      interviewRounds: 3,
-      recruiterEmail: 'recruiter@google.com',
-      position: 'Frontend (SDE-1)',
-      status: 'Interview Stage',
-    },
-    // Add more data as needed
-  ]);
-
+  const [applications, setApplications] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingApplication, setEditingApplication] = useState(null);
+
   const [newApplication, setNewApplication] = useState({
     date: '',
     companyName: '',
     interviewRounds: '',
     recruiterEmail: '',
     position: 'Frontend (SDE-1)',
-    status: 'Applied',
+    status: '',
   });
 
-  const positions = ["Frontend (SDE-1)", "Backend - SDE-1", "DevOps"];
-  const statuses = [
-    { label: "Interview Stage", color: "text-blue-600" },
-    { label: "Rejected", color: "text-red-600" },
-    { label: "Applied", color: "text-green-600" },
+  const statusOptions = [
+    'APPLIED',
+    'APPLICATION UNDER REVIEW',
+    'INTERVIEW X UNDER PROCESS',
+    'SELECTED',
+    'REJECTED',
+    'REJECTED AFTER APPLICATION REVIEW',
+    'REJECT AFTER INTERVIEW ROUND X'
   ];
 
-  const handleOpenModal = () => setIsModalOpen(true);
+  useEffect(() => {
+    // Fetching applications data
+    axios.get('http://localhost:8080/application/getAllUserApplications/1a2b3c')
+      .then(response => {
+        console.log("response--->", response);
+  
+        // Sort applications by dateOfApplication in descending order
+        const sortedApplications = response.data.sort((a, b) => {
+          // Convert dates to timestamps for comparison
+          return new Date(b.dateOfApplication) - new Date(a.dateOfApplication);
+        });
+  
+        setApplications(sortedApplications);
+      })
+      .catch(error => {
+        console.error('Error fetching the applications:', error);
+      });
+  }, []);
+  
+
+  const handleOpenModal = (application = null) => {
+    if (application) {
+      setIsEditMode(true);
+      setEditingApplication(application);
+      setNewApplication({
+        date: application.dateOfApplication || '',
+        companyName: application.companyName || '',
+        interviewRounds: application.noOfInterviewRounds || '',
+        recruiterEmail: application.recruiterEmailId || '',
+        position: application.roleAppliedFor || 'Frontend (SDE-1)',
+        status: application.currentStatus || 'APPLIED',
+      });
+    } else {
+      setIsEditMode(false);
+      setNewApplication({
+        date: '',
+        companyName: '',
+        interviewRounds: '',
+        recruiterEmail: '',
+        position: '',
+        status: '',
+      });
+    }
+    setIsModalOpen(true);
+  };
+
   const handleCloseModal = () => setIsModalOpen(false);
 
   const handleInputChange = (e) => {
@@ -44,22 +84,66 @@ const JobApplication = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setApplications([...applications, { id: Date.now(), ...newApplication }]);
-    setNewApplication({
-      date: '',
-      companyName: '',
-      interviewRounds: '',
-      recruiterEmail: '',
-      position: 'Frontend (SDE-1)',
-      status: 'Applied',
-    });
-    handleCloseModal();
+    const applicationData = {
+      userId: '1a2b3c',
+      companyName: newApplication.companyName,
+      noOfInterviewRounds: newApplication.interviewRounds,
+      recruiterEmailId: newApplication.recruiterEmail,
+      roleAppliedFor: newApplication.position,
+      currentStatus: newApplication.status,
+      id: isEditMode ? editingApplication.id : Date.now().toString(),
+      dateOfApplication: newApplication.date
+    };
+
+    const request = isEditMode 
+      ? axios.post(`http://localhost:8080/application/updateApplication/${editingApplication.id}`, applicationData)
+      : axios.post('http://localhost:8080/application/add', applicationData);
+
+    request
+      .then(response => {
+        const updatedApplications = isEditMode
+          ? applications.map(app => app.id === editingApplication.id ? applicationData : app)
+          : [...applications, applicationData];
+        setApplications(updatedApplications);
+        handleCloseModal();
+      })
+      .catch(error => {
+        console.error('Error posting the application:', error);
+      });
   };
 
-  const counts = statuses.reduce((acc, status) => {
-    acc[status.label] = applications.filter(app => app.status === status.label).length;
+  const handleDelete = (id) => {
+    axios.delete(`http://localhost:8080/application/delete/${id}`)
+      .then(response => {
+        const updatedApplications = applications.filter(app => app.id !== id);
+        setApplications(updatedApplications);
+      })
+      .catch(error => {
+        console.error('Error deleting the application:', error);
+      });
+  };
+
+  const counts = applications.reduce((acc, app) => {
+    acc[app.currentStatus] = (acc[app.currentStatus] || 0) + 1;
     return acc;
   }, {});
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'REJECTED':
+      case 'REJECTED AFTER APPLICATION REVIEW':
+      case 'REJECT AFTER INTERVIEW ROUND X':
+        return 'text-red-500'; // Red
+      case 'APPLICATION UNDER REVIEW':
+        return 'text-blue-500'; // Gray
+      case 'INTERVIEW X UNDER PROCESS':
+        return 'text-green-500'; // Blue
+      case 'SELECTED':
+        return 'text-green-500'; // Green
+      default:
+        return 'text-black'; // Default
+    }
+  };
 
   return (
     <div className="overflow-x-auto p-4">
@@ -67,14 +151,14 @@ const JobApplication = () => {
       <div className="mb-4">
         <h2 className="text-lg font-semibold">Application Summary</h2>
         <div className="flex space-x-4 mt-2">
-          {statuses.map(status => (
-            <div key={status.label} className={`text-sm ${status.color}`}>
-              {status.label}: {counts[status.label] || 0}
+          {Object.keys(counts).map(status => (
+            <div key={status} className="text-sm">
+              {status}: {counts[status]}
             </div>
           ))}
         </div>
         <button
-          onClick={handleOpenModal}
+          onClick={() => handleOpenModal()}
           className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
           Add New Application
@@ -92,52 +176,41 @@ const JobApplication = () => {
             <th className="py-3 px-6 border-b">Recruiter Email ID</th>
             <th className="py-3 px-6 border-b">Position</th>
             <th className="py-3 px-6 border-b">Current Status</th>
+            <th className="py-3 px-6 border-b">Actions</th>
           </tr>
         </thead>
         <tbody className="text-gray-800 text-sm">
           {applications.map((application, index) => (
             <tr key={application.id} className="hover:bg-gray-50">
               <td className="py-3 px-6 border-b">{index + 1}</td>
-              <td className="py-3 px-6 border-b">{application.date}</td>
+              <td className="py-3 px-6 border-b">{application.dateOfApplication}</td>
               <td className="py-3 px-6 border-b">{application.companyName}</td>
-              <td className="py-3 px-6 border-b">{application.interviewRounds}</td>
-              <td className="py-3 px-6 border-b">{application.recruiterEmail}</td>
-              <td className="py-3 px-6 border-b">
-                <select
-                  value={application.position}
-                  className="border border-gray-300 rounded p-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled
-                >
-                  {positions.map((position) => (
-                    <option key={position} value={position}>
-                      {position}
-                    </option>
-                  ))}
-                </select>
+              <td className="py-3 px-6 border-b">{application.noOfInterviewRounds}</td>
+              <td className="py-3 px-6 border-b">{application.recruiterEmailId}</td>
+              <td className="py-3 px-6 border-b">{application.roleAppliedFor}</td>
+              <td className={`py-3 px-6 border-b ${getStatusColor(application.currentStatus)}`}>
+                {application.currentStatus}
               </td>
-              <td className="py-3 px-6 border-b">
-                <select
-                  value={application.status}
-                  className="border border-gray-300 rounded p-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  // disabled
+              <td className="py-3 px-6 border-b flex space-x-2">
+                <button
+                  onClick={() => handleOpenModal(application)}
+                  className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
                 >
-                  {statuses.map((status) => (
-                    <option
-                      key={status.label}
-                      value={status.label}
-                      className={status.color}
-                    >
-                      {status.label}
-                    </option>
-                  ))}
-                </select>
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(application.id)}
+                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                >
+                  Delete
+                </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      {/* Modal for Adding New Application */}
+      {/* Modal for Adding or Editing Application */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
@@ -148,7 +221,7 @@ const JobApplication = () => {
             >
               &times;
             </button>
-            <h2 className="text-lg font-semibold mb-4">Add Your New Application Now</h2>
+            <h2 className="text-lg font-semibold mb-4">{isEditMode ? 'Edit Application' : 'Add Your New Application Now'}</h2>
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <input
@@ -164,8 +237,8 @@ const JobApplication = () => {
                   name="companyName"
                   value={newApplication.companyName}
                   onChange={handleInputChange}
-                  placeholder="Company Name"
                   className="border border-gray-300 rounded p-2 w-full"
+                  placeholder="Company Name"
                   required
                 />
                 <input
@@ -173,50 +246,47 @@ const JobApplication = () => {
                   name="interviewRounds"
                   value={newApplication.interviewRounds}
                   onChange={handleInputChange}
-                  placeholder="No. of Interview Rounds"
                   className="border border-gray-300 rounded p-2 w-full"
+                  placeholder="No. of Interview Rounds"
                   required
                 />
                 <input
-                  type="email"
+                  type="text"
                   name="recruiterEmail"
                   value={newApplication.recruiterEmail}
                   onChange={handleInputChange}
-                  placeholder="Recruiter Email ID"
                   className="border border-gray-300 rounded p-2 w-full"
+                  placeholder="Recruiter Email ID"
                   required
                 />
-                <select
+                <input
+                  type="text"
                   name="position"
                   value={newApplication.position}
                   onChange={handleInputChange}
                   className="border border-gray-300 rounded p-2 w-full"
-                >
-                  {positions.map((position) => (
-                    <option key={position} value={position}>
-                      {position}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Position"
+                  required
+                />
                 <select
                   name="status"
                   value={newApplication.status}
                   onChange={handleInputChange}
                   className="border border-gray-300 rounded p-2 w-full"
+                  required
                 >
-                  {statuses.map((status) => (
-                    <option key={status.label} value={status.label}>
-                      {status.label}
-                    </option>
+                  <option value="" disabled>Select Status</option>
+                  {statusOptions.map(option => (
+                    <option key={option} value={option}>{option}</option>
                   ))}
                 </select>
-                <button
-                  type="submit"
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                >
-                  Submit
-                </button>
               </div>
+              <button
+                type="submit"
+                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              >
+                {isEditMode ? 'Update Application' : 'Add Application'}
+              </button>
             </form>
           </div>
         </div>
