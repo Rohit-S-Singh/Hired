@@ -10,6 +10,7 @@ import Blog from './Components/blog';
 import Tools from './Components/tools';
 import Login from './Components/Login';
 import { Navigate } from 'react-router-dom';
+import Profile from './Components/profile';
 
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
               <Route path="/interviews" element={<Interview />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/tools" element={<Tools />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/login" element={<Navigate to="/" />} /> {/* Redirect to home if already logged in */}
             </Routes>
           </>
