@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useState} from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './Components/navbar';
 import Overview from './Components/dashboard';
@@ -8,22 +8,36 @@ import './index.css';
 import Interview from './Components/interviews';
 import Blog from './Components/blog';
 import Tools from './Components/tools';
+import Login from './Components/Login';
+import { Navigate } from 'react-router-dom';
+
 
 function App() {
+  const [loggedIn,setLoggedIn] = useState(false);
   return (
     <Router>
       <div className="App">
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<JobApplication />} />
-          <Route path="/overview" element={<Overview />} />
-          <Route path="/upskill" element={<Upskill />} />
-          <Route path="/application-status" element={<JobApplication />} />
-          <Route path="/interviews" element={<Interview />} />
-          <Route path="/blog" element={<Blog></Blog>} />
-          <Route path="/tools" element={<Tools></Tools>} />
-
-        </Routes>
+      {!loggedIn ? (
+          // Show login page if not logged in
+          <Routes>
+            <Route path="*" element={<Login setLoggedIn={setLoggedIn} />} />
+          </Routes>
+        ) : (
+          // Show the actual app if logged in
+          <>
+            <Navbar />
+            <Routes>
+              <Route path="/" element={<JobApplication />} />
+              <Route path="/overview" element={<Overview />} />
+              <Route path="/upskill" element={<Upskill />} />
+              <Route path="/application-status" element={<JobApplication />} />
+              <Route path="/interviews" element={<Interview />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/tools" element={<Tools />} />
+              <Route path="/login" element={<Navigate to="/" />} /> {/* Redirect to home if already logged in */}
+            </Routes>
+          </>
+        )}
       </div>
     </Router>
   );

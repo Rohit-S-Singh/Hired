@@ -52,7 +52,12 @@ const Dashboard = ({ userName }) => {
   const [applications, setApplications] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:8080/application/getAllUserApplications/1a2b3c')
+    const header={
+      headers:{
+        'Authorization' : `Bearer ${localStorage.getItem('jwtToken')}`
+      }
+    }
+    axios.get('http://localhost:8080/application/getAllUserApplications',header)
       .then(response => {
         console.log("response--->",response);
         setApplications(response.data);
