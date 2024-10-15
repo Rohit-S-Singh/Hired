@@ -28,8 +28,17 @@ const JobApplication = () => {
 
   useEffect(() => {
     // Fetching applications data
-    axios.get('http://localhost:8080/application/getAllUserApplications/1a2b3c')
-      .then(response => {
+    const token= localStorage.getItem('jwtToken')
+    const userName = localStorage.getItem('userName');
+    console.log()
+    const header={
+      headers:{
+        'Authorization' : `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    };
+    axios.get('http://localhost:8080/application/getAllUserApplications/'+userName,header)
+    .then(response => {
         console.log("response--->", response);
   
         // Sort applications by dateOfApplication in descending order
@@ -37,7 +46,7 @@ const JobApplication = () => {
           // Convert dates to timestamps for comparison
           return new Date(b.dateOfApplication) - new Date(a.dateOfApplication);
         });
-  
+
         setApplications(sortedApplications);
       })
       .catch(error => {
@@ -84,8 +93,9 @@ const JobApplication = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const userName=localStorage.getItem('userName');
     const applicationData = {
-      userId: '1a2b3c',
+      userId: userName,
       companyName: newApplication.companyName,
       noOfInterviewRounds: newApplication.interviewRounds,
       recruiterEmailId: newApplication.recruiterEmail,
@@ -95,9 +105,15 @@ const JobApplication = () => {
       dateOfApplication: newApplication.date
     };
 
-    const request = isEditMode 
-      ? axios.post(`http://localhost:8080/application/updateApplication/${editingApplication.id}`, applicationData)
-      : axios.post('http://localhost:8080/application/add', applicationData);
+    const header={
+      headers:{
+        'Authorization' : `Bearer ${localStorage.getItem('jwtToken')}`
+      }
+    }
+
+    const request = isEditMode
+      ? axios.post(`http://localhost:8080/application/updateApplication/${editingApplication.id}`, applicationData,header)
+      : axios.post('http://localhost:8080/application/add', applicationData,header);
 
     request
       .then(response => {
@@ -113,7 +129,13 @@ const JobApplication = () => {
   };
 
   const handleDelete = (id) => {
-    axios.delete(`http://localhost:8080/application/delete/${id}`)
+    const header={
+      headers:{
+        'Authorization' : `Bearer ${localStorage.getItem('jwtToken')}`
+      }
+    }
+    
+    axios.delete(`http://localhost:8080/application/delete/${id}`,header)
       .then(response => {
         const updatedApplications = applications.filter(app => app.id !== id);
         setApplications(updatedApplications);
