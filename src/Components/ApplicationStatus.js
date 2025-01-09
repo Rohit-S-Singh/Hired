@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+import excelLogo from '../assets/excel_logo.png';
+
 const JobApplication = () => {
   const [applications, setApplications] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -179,12 +181,23 @@ const JobApplication = () => {
             </div>
           ))}
         </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Add New Application
-        </button>
+        <div className="flex space-x-4">
+  <button
+    onClick={() => handleOpenModal()}
+    className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+  >
+    Add New Application
+  </button>
+
+  <button
+    onClick={() => handleOpenModal()}
+    className="mt-4 bg-green-800 text-white px-4 py-2 rounded hover:bg-green-600 flex items-center"
+  >
+    <img src={excelLogo} alt="Excel Logo" className="w-5 h-5 mr-2" />
+    Link your Daily Tracker
+  </button>
+</div>
+
       </div>
 
       {/* Application Table */}

@@ -12,6 +12,8 @@ import {
 import { FaEnvelope, FaBriefcase, FaUserCheck, FaChartLine } from "react-icons/fa";
 import axios from 'axios';
 
+import JobCategories from './exploreJobs';
+
 const formatDate = () => {
   const today = new Date();
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -126,6 +128,7 @@ const Dashboard = ({ userName }) => {
           </ResponsiveContainer>
         </div>
       </div>
+      <JobCategories/>
     </div>
   );
 };
