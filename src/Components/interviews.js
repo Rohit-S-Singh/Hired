@@ -4,11 +4,21 @@ import { FiPlus } from "react-icons/fi";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
 
+import { useNavigate } from "react-router-dom";
+
 const Interview = () => {
   const [isOpen, setIsOpen] = useState(false);
 
+  const navigate = useNavigate();
+
+
   function closeModal() {
     setIsOpen(false);
+  }
+
+  function startInterview(){
+    navigate("/new-interview");
+
   }
 
   function openModal() {
@@ -67,7 +77,7 @@ const Interview = () => {
           <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="text-md font-bold">Social Skill Assessment</h3>
             <p className="text-gray-700">60 minutes, 8 questions</p>
-            <button className="bg-blue-600 text-white p-2 rounded-md mt-2">Start Interview</button>
+            <button className="bg-blue-600 text-white p-2 rounded-md mt-2" onClick={startInterview}>Start Interview</button>
           </div>
         </div>
       </div>

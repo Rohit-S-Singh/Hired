@@ -11,6 +11,7 @@ import Tools from './Components/tools';
 import Login from './Components/Login';
 import { Navigate } from 'react-router-dom';
 import Profile from './Components/profile';
+import InterviewWindow from './Components/InterviewWindow';
 
 
 function App() {
@@ -18,7 +19,7 @@ function App() {
   return (
     <Router>
       <div className="App">
-      {!loggedIn ? (
+      {!true ? (
           // Show login page if not logged in
           <Routes>
             <Route path="*" element={<Login setLoggedIn={setLoggedIn} />} />
@@ -36,7 +37,8 @@ function App() {
               <Route path="/blog" element={<Blog />} />
               <Route path="/tools" element={<Tools />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/login" element={<Navigate to="/" />} /> {/* Redirect to home if already logged in */}
+              <Route path="/new-interview" element={<InterviewWindow />} />
+              <Route path="/login" element={<Login></Login>} /> {/* Redirect to home if already logged in */}
             </Routes>
           </>
         )}

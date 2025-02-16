@@ -76,7 +76,7 @@ const Navbar = () => {
             Application Status
           </Link>
           <Link to="/interviews" className="text-gray-700 text-sm hover:text-blue-500">
-            Explore Interviews
+           Interviews
           </Link>
           <Link to="/upskill" className="text-gray-700 text-sm hover:text-blue-500">
             Upskill
