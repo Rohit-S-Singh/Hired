@@ -1,5 +1,5 @@
-import React,{useState} from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './Components/navbar';
 import Overview from './Components/dashboard';
 import Upskill from './Components/Upskill';
@@ -9,20 +9,22 @@ import Interview from './Components/interviews';
 import Blog from './Components/blog';
 import Tools from './Components/tools';
 import Login from './Components/Login';
-import { Navigate } from 'react-router-dom';
+import Register from './Components/Register';
 import Profile from './Components/profile';
 import InterviewWindow from './Components/InterviewWindow';
 
-
 function App() {
-  const [loggedIn,setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+  console.log(loggedIn);
   return (
     <Router>
       <div className="App">
-      {!true ? (
-          // Show login page if not logged in
+        {!loggedIn ? (
+          // Show login or register page if not logged in
           <Routes>
-            <Route path="*" element={<Login setLoggedIn={setLoggedIn} />} />
+            <Route path="/login" element={<Login setLoggedIn={setLoggedIn} />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
         ) : (
           // Show the actual app if logged in
@@ -38,7 +40,7 @@ function App() {
               <Route path="/tools" element={<Tools />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/new-interview" element={<InterviewWindow />} />
-              <Route path="/login" element={<Login></Login>} /> {/* Redirect to home if already logged in */}
+              <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </>
         )}

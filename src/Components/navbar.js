@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import profile from "../assets/profile.png";
+import { FaGoogle, FaMicrosoft, FaVideo } from "react-icons/fa";
+import { FiPlus } from "react-icons/fi";
+import { Dialog, Transition } from "@headlessui/react";
+import { Fragment } from "react";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -18,7 +22,15 @@ const Navbar = () => {
   const handleProfileClick = () => {
     navigate("/profile");
   };
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
   // Close the dropdown when clicked outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -91,7 +103,10 @@ const Navbar = () => {
 
         {/* Post Job and Profile Section */}
         <div className="hidden lg:flex items-center space-x-4">
-          <button className="bg-blue-100 text-blue-500 text-sm font-medium px-4 py-2 rounded-full hover:bg-blue-200">
+          <button
+            className="bg-blue-100 text-blue-500 text-sm font-medium px-4 py-2 rounded-full hover:bg-blue-200"
+            onClick={() => setIsModalOpen(true)}
+          >
             + Schedule a mock Interview
           </button>
           <div className="relative">
@@ -150,7 +165,7 @@ const Navbar = () => {
               to="/interviews"
               className="block px-4 py-2 text-gray-700 text-sm hover:bg-gray-200"
             >
-              Explore Interviews
+              Interviews
             </Link>
             <Link
               to="/upskill"
@@ -170,7 +185,10 @@ const Navbar = () => {
             >
               Blog
             </Link>
-            <button className="block bg-blue-100 text-blue-500 text-sm font-medium w-full text-left px-4 py-2 rounded-full hover:bg-blue-200 mt-2">
+            <button
+              className="block bg-blue-100 text-blue-500 text-sm font-medium w-full text-left px-4 py-2 rounded-full hover:bg-blue-200 mt-2"
+              onClick={() => setIsModalOpen(true)}
+            >
               + Schedule a mock Interview
             </button>
             <div className="relative flex items-center mt-4">
@@ -198,6 +216,148 @@ const Navbar = () => {
           </div>
         )}
       </div>
+
+      {/* Modal */}
+      <Transition appear show={isModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={() => setIsModalOpen(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900"
+                  >
+                    Schedule New Interview
+                  </Dialog.Title>
+                  <div className="mt-2">
+                    <form className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Choose a person
+                        </label>
+                        <input
+                          type="text"
+                          className="mt-1 p-2 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Interview Type
+                        </label>
+                        <select className="mt-1 p-2 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                          <option>Paid</option>
+                          <option>Unpaid</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Select Time & Duration
+                        </label>
+                        <input
+                          type="datetime-local"
+                          className="mt-1 p-2 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Select Channel
+                        </label>
+                        <div className="mt-2 flex items-center space-x-4">
+                          <button className="flex items-center bg-gray-100 p-2 rounded-lg">
+                            <FaGoogle className="mr-2 text-green-500" /> Google Meet
+                          </button>
+                          <button className="flex items-center bg-gray-100 p-2 rounded-lg">
+                            <FaMicrosoft className="mr-2 text-blue-500" /> Teams
+                          </button>
+                          <button className="flex items-center bg-gray-100 p-2 rounded-lg">
+                            <FaVideo className="mr-2 text-red-500" /> Zoom
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Your Name
+                        </label>
+                        <input
+                          type="text"
+                          className="mt-1 p-2 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Your Email
+                        </label>
+                        <input
+                          type="email"
+                          className="mt-1 p-2 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Upload Attachments
+                        </label>
+                        <input
+                          type="file"
+                          className="mt-1 block w-full text-sm text-gray-500
+                          file:mr-4 file:py-2 file:px-4
+                          file:rounded-md file:border-0
+                          file:text-sm file:font-semibold
+                          file:bg-blue-50 file:text-blue-700
+                          hover:file:bg-blue-100"
+                        />
+                      </div>
+                    </form>
+                  </div>
+
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      onClick={() => setIsModalOpen(false)}
+                    >
+                      Schedule Interview
+                    </button>
+                    <button
+                      type="button"
+                      className="ml-2 inline-flex justify-center rounded-md border border-transparent bg-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2"
+                      onClick={() => setIsModalOpen(false)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </nav>
   );
 };
