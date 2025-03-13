@@ -14,7 +14,8 @@ export default function Signup() {
     const handleRegister = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post(`${process.env.BACKEND_BASE_URL}/user/register`, {
+            console.log("jbkjbkjbkj",process.env.REACT_APP_REACT_APP_BACKEND_BASE_URL);
+            const response = await axios.post(`${process.env.REACT_APP_REACT_APP_BACKEND_BASE_URL}/user/register`, {
                 userName: email,
                 email: email,
                 password: password,

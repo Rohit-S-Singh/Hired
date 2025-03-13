@@ -59,7 +59,7 @@ const Dashboard = ({ userName }) => {
         'Authorization' : `Bearer ${localStorage.getItem('jwtToken')}`
       }
     }
-    axios.get(`${process.env.BACKEND_BASE_URL}/application/getAllUserApplications`,header)
+    axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/application/getAllUserApplications`,header)
       .then(response => {
         console.log("response--->",response);
         setApplications(response.data);

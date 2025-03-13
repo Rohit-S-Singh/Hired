@@ -17,10 +17,11 @@ const Login = (props) => {
             userName: userName,
             password: password,
         };
-        const url = `${process.env.BACKEND_BASE_URL}/user/login`;
+        const url = `${process.env.REACT_APP_BACKEND_BASE_URL}/user/login`;
 
         try {
             const response = await axios.post(url, requestBody);
+            console.log(url);
 
             if (response.data.mainCode !== 200) {
                 toast.error("Login failed! Invalid credentials.");
