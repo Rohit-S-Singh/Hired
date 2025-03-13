@@ -39,7 +39,7 @@ const JobApplication = () => {
         'Content-Type': 'application/json'
       }
     };
-    axios.get('http://localhost:8080/application/getAllUserApplications/'+userName,header)
+    axios.get(`${process.env.BACKEND_BASE_URL}/application/getAllUserApplications/`+userName,header)
     .then(response => {
         console.log("response--->", response);
   
@@ -114,8 +114,8 @@ const JobApplication = () => {
     }
 
     const request = isEditMode
-      ? axios.post(`http://localhost:8080/application/updateApplication/${editingApplication.id}`, applicationData,header)
-      : axios.post('http://localhost:8080/application/add', applicationData,header);
+      ? axios.post(`${process.env.BACKEND_BASE_URL}/application/updateApplication/${editingApplication.id}`, applicationData,header)
+      : axios.post(`${process.env.BACKEND_BASE_URL}/application/add`, applicationData,header);
 
     request
       .then(response => {
@@ -137,7 +137,7 @@ const JobApplication = () => {
       }
     }
     
-    axios.delete(`http://localhost:8080/application/delete/${id}`,header)
+    axios.delete(`${process.env.BACKEND_BASE_URL}/application/delete/${id}`,header)
       .then(response => {
         const updatedApplications = applications.filter(app => app.id !== id);
         setApplications(updatedApplications);

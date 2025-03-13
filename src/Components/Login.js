@@ -17,7 +17,7 @@ const Login = (props) => {
             userName: userName,
             password: password,
         };
-        const url = "http://localhost:8080/user/login";
+        const url = `${process.env.BACKEND_BASE_URL}/user/login`;
 
         try {
             const response = await axios.post(url, requestBody);
