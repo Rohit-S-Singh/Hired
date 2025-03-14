@@ -5,14 +5,14 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const Login = ({ setLoggedIn }) => {
-    const [email, setEmail] = useState("");
+    const [userName, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
 
     const handleLogin = async (event) => {
         event.preventDefault();
         console.log(process.env.REACT_APP_BACKEND_BASE_URL)
-        const requestBody = { email, password };
+        const requestBody = { userName, password };
         const url = `${process.env.REACT_APP_BACKEND_BASE_URL}/user/login`;
         try {
             const response = await axios.post(url, requestBody);
@@ -22,7 +22,7 @@ const Login = ({ setLoggedIn }) => {
             } else {
                 setLoggedIn(true);
                 localStorage.setItem("jwtToken", response.data.token);
-                localStorage.setItem("email", response.data.email);
+                localStorage.setItem("username", response.data.userName);
                 toast.success("Login successful!");
 
                 setTimeout(() => navigate("/overview"), 2000);
@@ -43,14 +43,14 @@ const Login = ({ setLoggedIn }) => {
                 <p className="text-center text-gray-600 text-sm">Log in to continue exploring new jobs and opportunities.</p>
                 <form onSubmit={handleLogin} className="mt-4">
                     <div className="mb-4">
-                        <label className="block text-gray-700">Username</label>
+                        <label className="block text-gray-700">userName</label>
                         <input 
                             type="text"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            value={userName}
+                            onChange={(e) => setUsername(e.target.value)}
                             required
                             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                            placeholder="Enter your email"
+                            placeholder="Enter your username"
                         />
                     </div>
                     <div className="mb-4">
