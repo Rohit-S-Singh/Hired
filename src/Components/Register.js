@@ -110,7 +110,7 @@ export default function Signup() {
                 </div>
 
                 <p className="text-gray-500 text-sm mt-4">
-                    Already have an account? <span className="text-black font-semibold cursor-pointer">Log In</span>
+                    Already have an account? <span className="text-black font-semibold cursor-pointer" onClick={() => navigate("/login")}>Log In</span>
                 </p>
             </div>
             <ToastContainer />
