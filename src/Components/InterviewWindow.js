@@ -1,185 +1,218 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { Box, Typography, Avatar, IconButton, TextField, Button, Paper, Stack, Divider } from '@mui/material';
-import { Videocam, Mic, People, ExitToApp, Send } from '@mui/icons-material';
+import React, { useEffect, useRef, useState } from "react";
+import { Button } from "@mui/material";
+
+import SockJS from "sockjs-client";
+import { Client } from "@stomp/stompjs";
 
 const InterviewWindow = () => {
-  const videoRef = useRef(null);
-  const [isCameraEnabled, setIsCameraEnabled] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [message, setMessage] = useState("");
+
+  const [stompClient, setStompClient] = useState(null);
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  const peerConnection = useRef(null);
+  const [localStream, setLocalStream] = useState(null);
+
+
+  const username = "Rohit"; // Replace with dynamic username if needed
 
   useEffect(() => {
-    const startCamera = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          setIsCameraEnabled(true);
-        }
-      } catch (error) {
-        console.error("Error accessing camera or microphone:", error);
-        alert("Could not access camera or microphone. Please check your permissions.");
-      }
-    };
-
-    startCamera();
-
-    // Cleanup: Stop the video stream when component unmounts
+    const client = new Client({
+      webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+      reconnectDelay: 5000,
+      onConnect: () => {
+        console.log("Connected to WebSocket");
+  
+        // ✅ Subscribe to user joined event
+        client.subscribe("/topic/users", (message) => {
+          const joinedUser = message.body;
+          console.log("User joined:", joinedUser);
+          setMessages((prev) => [...prev, `${joinedUser} joined the interview`]);
+        });
+  
+        // ✅ Announce this user has joined
+        client.publish({
+          destination: "/app/user-joined",
+          body: username,
+        });
+  
+        // ✅ Other subscriptions
+        client.subscribe("/topic/interview/1", (message) => {
+          const data = JSON.parse(message.body);
+          if (data.type === "message") {
+            setMessages((prev) => [...prev, data.message]);
+          } else if (data.type === "offer") {
+            handleOffer(data.offer);
+          } else if (data.type === "answer") {
+            handleAnswer(data.answer);
+          } else if (data.type === "candidate") {
+            handleCandidate(data.candidate);
+          }
+        });
+  
+        setStompClient(client);
+      },
+      onStompError: (frame) => {
+        console.error("Broker error:", frame.headers["message"]);
+      },
+    });
+  
+    client.activate();
+  
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const tracks = videoRef.current.srcObject.getTracks();
-        tracks.forEach((track) => track.stop());
-      }
+      if (client.connected) client.deactivate();
     };
+  }, [username]);
+
+  useEffect(() => {
+    startCamera();
   }, []);
 
+  const startCamera = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    setLocalStream(stream);
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = stream;
+    }
+  };
+
+  const createOffer = async () => {
+    peerConnection.current = new RTCPeerConnection();
+    localStream.getTracks().forEach((track) => {
+      peerConnection.current.addTrack(track, localStream);
+    });
+
+    peerConnection.current.onicecandidate = (event) => {
+      if (event.candidate && stompClient) {
+        stompClient.publish({
+          destination: "/app/interview/1",
+          body: JSON.stringify({
+            type: "candidate",
+            candidate: event.candidate,
+          }),
+        });
+      }
+    };
+
+    peerConnection.current.ontrack = (event) => {
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = event.streams[0];
+      }
+    };
+
+    const offer = await peerConnection.current.createOffer();
+    await peerConnection.current.setLocalDescription(offer);
+
+    stompClient.publish({
+      destination: "/app/interview/1",
+      body: JSON.stringify({
+        type: "offer",
+        offer,
+      }),
+    });
+  };
+
+  const handleOffer = async (offer) => {
+    peerConnection.current = new RTCPeerConnection();
+    localStream.getTracks().forEach((track) => {
+      peerConnection.current.addTrack(track, localStream);
+    });
+
+    peerConnection.current.onicecandidate = (event) => {
+      if (event.candidate && stompClient) {
+        stompClient.publish({
+          destination: "/app/interview/1",
+          body: JSON.stringify({
+            type: "candidate",
+            candidate: event.candidate,
+          }),
+        });
+      }
+    };
+
+    peerConnection.current.ontrack = (event) => {
+      if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = event.streams[0];
+      }
+    };
+
+    await peerConnection.current.setRemoteDescription(new RTCSessionDescription(offer));
+    const answer = await peerConnection.current.createAnswer();
+    await peerConnection.current.setLocalDescription(answer);
+
+    stompClient.publish({
+      destination: "/app/interview/1",
+      body: JSON.stringify({
+        type: "answer",
+        answer,
+      }),
+    });
+  };
+
+  const handleAnswer = async (answer) => {
+    if (peerConnection.current) {
+      await peerConnection.current.setRemoteDescription(new RTCSessionDescription(answer));
+    }
+  };
+
+  const handleCandidate = async (candidate) => {
+    if (peerConnection.current) {
+      await peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
+    }
+  };
+
+  const sendMessage = () => {
+    if (stompClient && message.trim() !== "") {
+      stompClient.publish({
+        destination: "/app/interview/1",
+        body: JSON.stringify({
+          type: "message",
+          message,
+        }),
+      });
+      setMessages((prev) => [...prev, message]);
+      setMessage("");
+    }
+  };
+
   return (
-    <Box sx={{ display: 'flex', height: '100vh', backgroundColor: '#f9f9f9' }}>
-      {/* Sidebar */}
-      <Box
-        sx={{
-          width: '80px',
-          backgroundColor: '#ffffff',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          padding: '16px 0',
-          overflow:'hidden',
-          boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-        }}
-      >
-        <IconButton>
-          <People />
-        </IconButton>
-        <IconButton>
-          <Videocam />
-        </IconButton>
-        <IconButton>
-          <Mic />
-        </IconButton>
-        <Box sx={{ flexGrow: 1 }} />
-        <Avatar src="/path-to-profile-pic.jpg" />
-      </Box>
+    <div className="h-screen flex">
+      {/* Left Panel - Video & Participants */}
+      <div className="w-2/3 bg-gray-100 p-4 flex flex-col">
+        <div className="flex-1 mb-4 rounded-xl overflow-hidden shadow-md">
+          <video ref={localVideoRef} autoPlay muted className="w-full h-full rounded-xl bg-black" />
+        </div>
+        <div className="h-1/3 flex gap-2 overflow-x-auto items-center">
+          <video ref={remoteVideoRef} autoPlay className="w-48 h-32 rounded-md bg-black" />
+        </div>
+        <div className="mt-4 flex justify-center gap-4">
+          <Button variant="contained" color="primary" onClick={createOffer}>Start Call</Button>
+        </div>
+      </div>
 
-      {/* Main Content */}
-      <Box
-        sx={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '16px',
-          backgroundColor: '#ffffff',
-        }}
-      >
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '16px',
-          }}
-        >
-          <Typography variant="h6">Product Design Weekly Meeting</Typography>
-          <Typography color="error">Recording 26:32</Typography>
-          <Button variant="contained" color="primary">
-            Share Meeting Link
-          </Button>
-        </Box>
-
-        {/* Video Feed */}
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <Box
-            sx={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: isCameraEnabled ? 'black' : '#f3f3f3',
-              borderRadius: '8px',
-              overflow: 'hidden',
-            }}
-          >
-            {/* Video Element */}
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-              }}
-            />
-            {!isCameraEnabled && <Typography variant="h5">Main Participant Video</Typography>}
-          </Box>
-
-          <Stack direction="row" spacing={2} justifyContent="center">
-            <Box sx={{ width: '100px', height: '100px', backgroundColor: '#f3f3f3', borderRadius: '8px' }}>
-              <Typography textAlign="center">Sara</Typography>
-            </Box>
-            <Box sx={{ width: '100px', height: '100px', backgroundColor: '#f3f3f3', borderRadius: '8px' }}>
-              <Typography textAlign="center">Jeong</Typography>
-            </Box>
-            <Box sx={{ width: '100px', height: '100px', backgroundColor: '#f3f3f3', borderRadius: '8px' }}>
-              <Typography textAlign="center">John</Typography>
-            </Box>
-            <Box sx={{ width: '100px', height: '100px', backgroundColor: '#f3f3f3', borderRadius: '8px' }}>
-              <Typography textAlign="center">You</Typography>
-            </Box>
-          </Stack>
-        </Box>
-
-        {/* Bottom Controls */}
-        <Stack direction="row" justifyContent="center" spacing={4} sx={{ marginTop: '16px' }}>
-          <IconButton>
-            <Mic />
-          </IconButton>
-          <Button variant="contained" color="error" startIcon={<ExitToApp />}>
-            Leave Meeting
-          </Button>
-          <IconButton>
-            <Videocam />
-          </IconButton>
-        </Stack>
-      </Box>
-
-      {/* Messages */}
-      <Box
-        sx={{
-          width: '300px',
-          display: 'flex',
-          flexDirection: 'column',
-          backgroundColor: '#ffffff',
-          padding: '16px',
-          borderLeft: '1px solid #e0e0e0',
-        }}
-      >
-        <Typography variant="h6">Messages</Typography>
-        <Divider sx={{ margin: '8px 0' }} />
-        <Box sx={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
-          <Message sender="Amir" text="Hello guys, how are you doing?" time="9:20" />
-          <Message sender="Jessica" text="Hi Amir" time="9:21" />
-          <Message sender="Anna" text="Hey guys, what's the topic of this week?" time="9:24" />
-        </Box>
-        <Stack direction="row" spacing={1}>
-          <TextField fullWidth placeholder="Write a message..." size="small" />
-          <IconButton color="primary">
-            <Send />
-          </IconButton>
-        </Stack>
-      </Box>
-    </Box>
-  );
-};
-
-// Message Component
-const Message = ({ sender, text, time }) => {
-  return (
-    <Paper sx={{ padding: '8px', marginBottom: '8px', backgroundColor: '#f5f5f5' }}>
-      <Typography variant="body2" fontWeight="bold">
-        {sender} <Typography component="span" color="text.secondary" fontSize="0.8rem">({time})</Typography>
-      </Typography>
-      <Typography variant="body2">{text}</Typography>
-    </Paper>
+      {/* Right Panel - Chat */}
+      <div className="w-1/3 border-l flex flex-col bg-white">
+        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          {messages.map((msg, index) => (
+            <div key={index} className="bg-gray-200 p-2 rounded-md text-sm">
+              {msg}
+            </div>
+          ))}
+        </div>
+        <div className="p-4 border-t flex gap-2">
+          <input
+            type="text"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+            className="flex-1 border rounded-md px-3 py-2"
+            placeholder="Type a message..."
+          />
+          <Button variant="contained" onClick={sendMessage}>Send</Button>
+        </div>
+      </div>
+    </div>
   );
 };
 
