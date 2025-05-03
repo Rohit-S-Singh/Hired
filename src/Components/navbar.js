@@ -81,6 +81,9 @@ const Navbar = () => {
 
         {/* Nav Links */}
         <div className={`flex space-x-6 lg:flex ${isMenuOpen ? "block" : "hidden"} lg:block`}>
+          <Link to="/home" className="text-gray-700 text-sm hover:text-blue-500">
+            Home
+          </Link>
           <Link to="/overview" className="text-gray-700 text-sm hover:text-blue-500">
             Overview
           </Link>
@@ -101,54 +104,74 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Post Job and Profile Section */}
         <div className="hidden lg:flex items-center space-x-4">
-          <button
-            className="bg-blue-100 text-blue-500 text-sm font-medium px-4 py-2 rounded-full hover:bg-blue-200"
-            onClick={() => setIsModalOpen(true)}
-          >
-            + Schedule a mock Interview
-          </button>
-          <div className="relative">
-            <img
-              src={profile}
-              alt="User Avatar"
-              className="h-8 w-8 rounded-full cursor-pointer"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            />
-            <span
-              className="ml-2 text-gray-700 text-sm cursor-pointer"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            >
-              
-            </span>
-
-            {/* Dropdown */}
-            {isDropdownOpen && (
-              <div
-                ref={dropdownRef}
-                className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-md py-2"
+          {localStorage.getItem("isLoggedIn") === "true" ? (
+            <>
+              <button
+                className="bg-blue-100 text-blue-500 text-sm font-medium px-4 py-2 rounded-full hover:bg-blue-200"
+                onClick={() => setIsModalOpen(true)}
               >
-                <button
-                  onClick={handleProfileClick}
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
-                >
-                  View Profile
-                </button>
-                <button
-                  onClick={handleSignOut}
-                  className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
-                >
-                  Sign Out
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+                + Schedule a mock Interview
+              </button>
+              <div className="relative">
+                <img
+                  src={profile}
+                  alt="User Avatar"
+                  className="h-8 w-8 rounded-full cursor-pointer"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                />
+                <span
+                  className="ml-2 text-gray-700 text-sm cursor-pointer"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                ></span>
 
-        {/* Mobile Menu */}
+                {/* Dropdown */}
+                {isDropdownOpen && (
+                  <div
+                    ref={dropdownRef}
+                    className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-md py-2"
+                  >
+                    <button
+                      onClick={handleProfileClick}
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
+                    >
+                      View Profile
+                    </button>
+                    <button
+                      onClick={handleSignOut}
+                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 w-full text-left"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <button
+                className="bg-blue-100 text-blue-500 text-sm font-medium px-4 py-2 rounded-full hover:bg-blue-200"
+                onClick={() => navigate("/login")}
+              >
+                Login
+              </button>
+              <button
+                className="bg-green-100 text-green-500 text-sm font-medium px-4 py-2 rounded-full hover:bg-green-200"
+                onClick={() => navigate("/register")}
+              >
+                Register
+              </button>
+            </>
+          )}
+        </div>
         {isMenuOpen && (
           <div className="lg:hidden mt-4">
+              <Link
+              to="/overview"
+              className="block px-4 py-2 text-gray-700 text-sm hover:bg-gray-200"
+            >
+              Home
+            </Link>
             <Link
               to="/overview"
               className="block px-4 py-2 text-gray-700 text-sm hover:bg-gray-200"

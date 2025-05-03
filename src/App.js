@@ -12,6 +12,8 @@ import Login from './Components/Login';
 import Register from './Components/Register';
 import Profile from './Components/profile';
 import InterviewWindow from './Components/InterviewWindow';
+import HomePage from './Components/Home';
+import Footer from './Components/Footer';
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -24,14 +26,20 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login setLoggedIn={setLoggedIn} />} />
             <Route path="/register" element={<Register />} />
-            <Route path="*" element={<Navigate to="/login" />} />
+            <Route path="*" element={
+              <>
+              <Navbar />
+              <HomePage />
+              <Footer></Footer>
+              </>
+            } />
           </Routes>
         ) : (
           // Show the actual app if logged in
           <>
             <Navbar />
             <Routes>
-              <Route path="/" element={<JobApplication />} />
+              <Route path="/" element={<HomePage />} />
               <Route path="/overview" element={<Overview />} />
               <Route path="/upskill" element={<Upskill />} />
               <Route path="/application-status" element={<JobApplication />} />
@@ -42,6 +50,7 @@ function App() {
               <Route path="/new-interview" element={<InterviewWindow />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
+            <Footer/>
           </>
         )}
       </div>
