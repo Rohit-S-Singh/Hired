@@ -3,10 +3,10 @@ const HomePage = () => {
     const problems = [
       { icon: "👥", text: "Connections to Recruiters", bg: "bg-red-100", textColor: "text-red-500" },
       { icon: "🔥", text: "Getting Interview Calls", bg: "bg-purple-100", textColor: "text-purple-500" },
-      { icon: "🧰", text: "Lack of Experience and Preparation", bg: "bg-violet-100", textColor: "text-violet-500" },
-      { icon: "👑", text: "Low Interview Success Rate", bg: "bg-yellow-100", textColor: "text-yellow-500" },
+      { icon: "🕒", text: "Automated Application Process", bg: "bg-blue-100", textColor: "text-blue-500" },
       { icon: "📥", text: "Job Application Tracking", bg: "bg-green-100", textColor: "text-green-500" },
-      { icon: "🕒", text: "Slow Job Search Process", bg: "bg-blue-100", textColor: "text-blue-500" },
+      { icon: "🧰", text: "Faster Referrals", bg: "bg-violet-100", textColor: "text-violet-500" },
+      { icon: "👑", text: "Quick Job Opening Updates", bg: "bg-yellow-100", textColor: "text-yellow-500" },
     ];
   
     return (
