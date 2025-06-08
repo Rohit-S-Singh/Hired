@@ -12,17 +12,19 @@ const Login = ({ setLoggedIn }) => {
     const handleLogin = async (event) => {
         event.preventDefault();
         console.log(process.env.REACT_APP_BACKEND_BASE_URL)
-        const requestBody = { userName, password };
-        const url = `${process.env.REACT_APP_BACKEND_BASE_URL}/user/login`;
+        const requestBody = { "email":userName, password };
+        const url = `${process.env.REACT_APP_BACKEND_BASE_URL}/api/login`;
         try {
             const response = await axios.post(url, requestBody);
-            
-            if (response.data.mainCode !== 200) {
+            console.log("Login response:", response.data);
+            if (!response.data.token) {
                 toast.error("Login failed! Invalid credentials.");
             } else {
                 setLoggedIn(true);
                 localStorage.setItem("jwtToken", response.data.token);
-                localStorage.setItem("username", response.data.userName);
+                localStorage.setItem("username", response.data.username);
+                console.log("EMAIL", localStorage.getItem('username'))
+
                 toast.success("Login successful!");
 
                 setTimeout(() => navigate("/overview"), 2000);
@@ -43,7 +45,7 @@ const Login = ({ setLoggedIn }) => {
                 <p className="text-center text-gray-600 text-sm">Log in to continue exploring new jobs and opportunities.</p>
                 <form onSubmit={handleLogin} className="mt-4">
                     <div className="mb-4">
-                        <label className="block text-gray-700">userName</label>
+                        <label className="block text-gray-700">Email</label>
                         <input 
                             type="text"
                             value={userName}
@@ -78,10 +80,10 @@ const Login = ({ setLoggedIn }) => {
                 </div>
                 <div className="flex gap-2">
                     <button className="w-1/2 flex items-center justify-center gap-2 border py-2 rounded-lg">
-                        <span>🔴</span> Google
+                        <span></span> Google
                     </button>
                     <button className="w-1/2 flex items-center justify-center gap-2 border py-2 rounded-lg">
-                        <span>🍏</span> Apple ID
+                        <span></span> Apple ID
                     </button>
                 </div>
                 <p className="text-center text-gray-600 text-sm mt-4">

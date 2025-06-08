@@ -170,7 +170,7 @@ const JobApplication = () => {
   };
 
   return (
-    <div className="overflow-x-auto p-4">
+    <div style = { { width: '100vw', height: '55vh', padding: '20px', boxSizing: 'border-box' }} className="overflow-x-auto p-4">
       {/* Summary Section */}
       <div className="mb-4">
         <h2 className="text-lg font-semibold">Application Summary</h2>

@@ -22,7 +22,7 @@ const Navbar = () => {
   const handleProfileClick = () => {
     navigate("/profile");
   };
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(true);
 
   const closeModal = () => {
     setIsModalOpen(false);

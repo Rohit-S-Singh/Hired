@@ -14,6 +14,9 @@ import Profile from './Components/profile';
 import InterviewWindow from './Components/InterviewWindow';
 import HomePage from './Components/Home';
 import Footer from './Components/Footer';
+import EmailSender from './Components/Email-Sender';
+import EmailSetup from './Components/EmailSetup';
+import RecruiterList from './Components/RecruitersList';
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -26,11 +29,16 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login setLoggedIn={setLoggedIn} />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/email-sender" element={<EmailSender />} />
+            <Route path="/email-setup" element={<EmailSetup/>}/>
+            <Route path="/recruitersList" element={<RecruiterList/>}/>
+            
+
+
             <Route path="*" element={
               <>
               <Navbar />
               <HomePage />
-              <Footer></Footer>
               </>
             } />
           </Routes>
@@ -48,11 +56,15 @@ function App() {
               <Route path="/tools" element={<Tools />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/new-interview" element={<InterviewWindow />} />
+              <Route path="/email-sender" element={<EmailSender />} />
+              <Route path="/email-setup" element={<EmailSetup/>}/>
+
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
-            <Footer/>
+            
           </>
         )}
+        <Footer/>
       </div>
     </Router>
   );
