@@ -21,7 +21,7 @@ const RecruiterList = () => {
         setIsLoggedIn(!!email);
 
         if (email) {
-            fetch("http://localhost:8080/api/check-email-connection", {
+            fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/check-email-connection`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email }),
@@ -34,7 +34,7 @@ const RecruiterList = () => {
  
     const handleSendEmail = async (recruiterEmail) => {
         try {
-            const res = await fetch("http://localhost:8080/api/send-email", {
+            const res = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/send-email`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

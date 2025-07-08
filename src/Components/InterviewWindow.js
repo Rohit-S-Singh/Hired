@@ -29,7 +29,7 @@ const InterviewWindow = () => {
 
   useEffect(() => {
     const client = new Client({
-      webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+      webSocketFactory: () => new SockJS(`${process.env.REACT_APP_BACKEND_BASE_URL}/ws`),
       reconnectDelay: 5000,
       onConnect: () => {
         console.log("✅ Connected to WebSocket");
