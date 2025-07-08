@@ -13,7 +13,7 @@ const HomePage = () => {
       <div className="bg-white text-black">
         {/* Hero Section */}
         <section className="py-20 px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">Ace Your Interviews and get Hiredd</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-6">{process.env.REACT_APP_NAME} - Ace Your Interviews and get Hiredd</h1>
           <p className="text-lg text-gray-600 mb-8">
             Personalized mock interviews, instant feedback, and real-world questions to help you crack your dream job.
           </p>
