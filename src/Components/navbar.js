@@ -38,7 +38,7 @@ const Navbar = () => {
     <nav className="bg-white shadow-sm p-4 relative">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <img src="/path-to-your-logo.png" alt="Job Buddy Logo" className="h-8" />
+          <img src="/path-to-your-logo.png" alt="HIRED" className="h-8" />
         </div>
 
         <div className="lg:hidden">
