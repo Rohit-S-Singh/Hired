@@ -29,6 +29,7 @@ const EmailSender = () => {
   const navigate = useNavigate();
   const [openRowId, setOpenRowId] = useState(null);
 
+  
 
 
 
@@ -48,7 +49,33 @@ const EmailSender = () => {
           params: { userEmail: user?.email }
         });
 
-        setRecruiters(recruiterData?.recruiters || []);
+        // Fetch logs for all recruiters
+        const recruitersList = recruiterData?.recruiters || [];
+        const logsMap = {};
+        console.log(recruitersList);
+        await Promise.all(recruitersList.map(async (rec) => {
+          try {
+            const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/email-logs`, {
+              params: { recruiterId: rec._id, userEmail: user.email },
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            logsMap[rec._id] = data.logs || [];
+            // Find latest sent log
+            const sentLog = (data.logs || []).find(log => log.status === 'sent');
+            const fallbackLog = (data.logs || [])[0];
+            if (sentLog) {
+              rec.status = sentLog.status;
+              rec.sentAt = new Date(sentLog.sentAt || sentLog.createdAt).toLocaleString();
+            } else if (fallbackLog) {
+              rec.status = fallbackLog.status;
+              rec.sentAt = new Date(fallbackLog.createdAt).toLocaleString();
+            }
+          } catch (e) {
+            logsMap[rec._id] = [];
+          }
+        }));
+        setEmailLogs(logsMap);
+        setRecruiters(recruitersList);
       } catch (error) {
         console.error('Error in connection check or fetching recruiters:', error);
       } finally {
@@ -75,7 +102,7 @@ const EmailSender = () => {
       const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/email-logs`, {
         params: {
           recruiterId,
-          userEmail: user?.email,
+          userEmail: user.email,
         },
         headers: { Authorization: `Bearer ${token}` },
       });
