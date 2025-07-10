@@ -1,4 +1,5 @@
 import { FaFacebookF, FaTwitter, FaLinkedinIn, FaInstagram } from "react-icons/fa";
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
     return (
@@ -18,7 +19,7 @@ const Footer = () => {
                     <h2 className="text-lg font-semibold text-white mb-4">Quick Links</h2>
                     <ul className="space-y-2 text-sm">
                         <li><a href="#" className="hover:text-white transition">Home</a></li>
-                        <li><a href="#" className="hover:text-white transition">About</a></li>
+                        <li><Link to="/about" className="hover:text-white transition">About</Link></li>
                         <li><a href="#" className="hover:text-white transition">Services</a></li>
                         <li><a href="#" className="hover:text-white transition">Blog</a></li>
                     </ul>
@@ -58,7 +59,8 @@ const Footer = () => {
 
             {/* Footer Bottom */}
             <div className="mt-10 border-t border-gray-700 pt-5 text-center text-sm text-gray-500">
-                © {new Date().getFullYear()} Hiredd. All rights reserved.
+                © {new Date().getFullYear()} Hiredd. All rights reserved.<br/>
+                <span className="text-gray-400">Founder & CEO: Rohit Shekhar Singh</span>
             </div>
         </footer>
     );
