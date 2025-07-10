@@ -29,7 +29,6 @@ const EmailSender = () => {
   const navigate = useNavigate();
   const [openRowId, setOpenRowId] = useState(null);
 
-  
 
 
 
@@ -49,33 +48,7 @@ const EmailSender = () => {
           params: { userEmail: user?.email }
         });
 
-        // Fetch logs for all recruiters
-        const recruitersList = recruiterData?.recruiters || [];
-        const logsMap = {};
-        console.log(recruitersList);
-        await Promise.all(recruitersList.map(async (rec) => {
-          try {
-            const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/email-logs`, {
-              params: { recruiterId: rec._id, userEmail: user.email },
-              headers: { Authorization: `Bearer ${token}` },
-            });
-            logsMap[rec._id] = data.logs || [];
-            // Find latest sent log
-            const sentLog = (data.logs || []).find(log => log.status === 'sent');
-            const fallbackLog = (data.logs || [])[0];
-            if (sentLog) {
-              rec.status = sentLog.status;
-              rec.sentAt = new Date(sentLog.sentAt || sentLog.createdAt).toLocaleString();
-            } else if (fallbackLog) {
-              rec.status = fallbackLog.status;
-              rec.sentAt = new Date(fallbackLog.createdAt).toLocaleString();
-            }
-          } catch (e) {
-            logsMap[rec._id] = [];
-          }
-        }));
-        setEmailLogs(logsMap);
-        setRecruiters(recruitersList);
+        setRecruiters(recruiterData?.recruiters || []);
       } catch (error) {
         console.error('Error in connection check or fetching recruiters:', error);
       } finally {
@@ -102,7 +75,7 @@ const EmailSender = () => {
       const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/email-logs`, {
         params: {
           recruiterId,
-          userEmail: user.email,
+          userEmail: user?.email,
         },
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -192,57 +165,35 @@ const EmailSender = () => {
 
     setSendingEmail(true);
     try {
+      // Fetch the template from the backend
+      let finalHtml = '';
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/get-html-template`, {
+          params: { email: user?.email },
+        });
+        if (response.data && response.data.success && response.data.htmlEmailTemplate) {
+          finalHtml = response.data.htmlEmailTemplate.finalHtml;
+        }
+      } catch (fetchTemplateError) {
+        console.error('Error fetching HTML template:', fetchTemplateError);
+        alert('Failed to fetch email template.');
+        setSendingEmail(false);
+        return;
+      }
+
+      console.log("finalHtml", finalHtml);
+
+      alert("finalHtml", finalHtml);
+
+      // Optionally, replace variables in the template here if needed
+      // Example: finalHtml = finalHtml.replace(/{{recruiter.name}}/g, recruiter.name);
+      finalHtml = finalHtml.replace(/{{\s*recruiter\.name\s*}}/g, recruiter.name);
+
       const formData = new FormData();
       formData.append("from", user?.email);
       formData.append("to", recruiter.email);
       formData.append("subject", "Application For Engineering Roles (SDE-1)");
-      formData.append("body", `<html>
-  <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
-    <p>Hi ${recruiter.name},</p>
-
-    <p>
-      I hope you're doing well. 
-      <strong>I am a Software Engineer at a product-based</strong> company that enables businesses to create no-code and low-code mobile apps for their websites within minutes. 
-      <strong>I am looking for new full-time engineering opportunities.</strong> 
-      My work involves building scalable integrations, working on Shopify automation, and enhancing platform capabilities to streamline app development. 
-      Previously, I have also worked with esteemed <strong>clients such as ASUS India, Air Arabia, and Education First</strong>, delivering 
-      <strong>generative AI</strong> and automation solutions tailored to their needs.
-    </p>
-
-    <p>
-      My skill set includes technologies including 
-      <strong>JavaScript, Java, Spring Boot, Node.js, Express.js, TypeScript, React, Redux, Jest, Docker, AWS, PostgreSQL, and MongoDB</strong>. 
-      I have demonstrated proficiency in these areas through developing and deploying various personal projects and my work experience.
-    </p>
-
-    <p>
-      I am reaching out to you to find in-office or remote full-time opportunities at your organization.
-    </p>
-
-    <h4 style="margin-top: 1.5rem;">Additional Details:</h4>
-    <ul>
-      <li><strong>Current Location:</strong> Gurgaon</li>
-      <li><strong>Notice Period:</strong> 2 months (negotiable)</li>
-      <li><strong>Current CTC:</strong> 11.5 LPA</li>
-      <li><strong>Preferred Work Mode:</strong> Open to both <strong>remote</strong> and <strong>in-office</strong></li>
-      <li><strong>YOE:</strong> 2+</li>
-    </ul>
-
-    <p>
-      I am attaching my resume for you to look over. I would love to connect with you and talk about how my background could be a valuable addition. 
-      Please let me know and we can talk about this more.
-    </p>
-
-    <p style="margin-top: 2rem;">
-      Kind Regards,<br/>
-      Rohit Shekhar Singh<br/>
-      Ph: +91-9334545804<br/>
-      LinkedIn: <a href="https://www.linkedin.com/in/rohitshekharsingh/" target="_blank">Rohit Shekhar Singh</a>
-    </p>
-  </body>
-</html>
-`);
-
+      formData.append("body", finalHtml);
       formData.append("attachment", resumeFile);
 
       await axios.post(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/send-email`, formData, {
@@ -251,6 +202,8 @@ const EmailSender = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
+
+      // Save the HTML template to the backend (optional, if you want to keep this ste
 
       setRecruiters(prev =>
         prev.map(r =>

@@ -6,7 +6,7 @@ import emailTemplateAnimation from "../assets/Email-Template.json";
 const TemplateEditor = () => {
   const [template, setTemplate] = useState(`
     <div style="font-family: 'Segoe UI', Inter, sans-serif; color: #333; line-height: 1.6; max-width: 700px;">
-      <p>Hi,</p>
+      <p>Hi {{recruiter.name}}, </p>
 
       <p style="margin-top: 20px;">Introduction</p>
 
@@ -57,15 +57,44 @@ const TemplateEditor = () => {
   const renderedHtml = Mustache.render(template, previewData);
 
   const handleSaveTemplate = () => {
+    // Replace variables in the template with values from previewData
+    let finalHtml = template;
+    if (previewData && typeof previewData === 'object') {
+      // Helper to get nested value by path (e.g., recruiter.name)
+      const getValueByPath = (obj, path) => {
+        return path.split('.').reduce((acc, part) => (acc && acc[part] !== undefined ? acc[part] : ''), obj);
+      };
+      // Replace all {{...}} with correct value from previewData
+      finalHtml = finalHtml.replace(/{{\s*([\w.]+)\s*}}/g, (match, p1) => {
+        const value = getValueByPath(previewData, p1);
+        return value !== undefined ? value : match;
+      });
+    }
+
     const payload = {
-      template,
-      placeholders: previewData,
+      email: 'rohitshekrsingh@gmail.com', // Replace with dynamic user email if available
+      finalHtml: finalHtml,
     };
 
-    // Example save logic
-    console.log("📩 Template saved:", payload);
+    console.log("payload", payload); 
 
-    alert("Template saved! (Check console)");
+    // Call the API to save the HTML template
+    fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/save-html-template`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log('Template saved to backend:', data);
+        alert('Template saved to backend!');
+      })
+      .catch((error) => {
+        console.error('Error saving template:', error);
+        alert('Failed to save template.');
+      });
   };
 
   return (
