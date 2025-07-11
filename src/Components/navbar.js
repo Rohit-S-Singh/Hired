@@ -61,11 +61,26 @@ const Navbar = () => {
         <div className={`flex space-x-6 lg:flex ${isMenuOpen ? "block" : "hidden"} lg:block`}>
           <Link to="/home" className="text-gray-700 text-sm hover:text-blue-500">Home</Link>
           <Link to="/overview" className="text-gray-700 text-sm hover:text-blue-500">Overview</Link>
-          <Link to="/application-status" className="text-gray-700 text-sm hover:text-blue-500">Application Status</Link>
-          <Link to="/interviews" className="text-gray-700 text-sm hover:text-blue-500">Interviews</Link>
-          <Link to="/upskill" className="text-gray-700 text-sm hover:text-blue-500">Upskill</Link>
-          <Link to="/tools" className="text-gray-700 text-sm hover:text-blue-500">Tools</Link>
-          <Link to="/blog" className="text-gray-700 text-sm hover:text-blue-500">Blog</Link>
+          <div className="flex flex-col items-center cursor-not-allowed">
+            <span className="text-gray-400 text-sm">Application Status</span>
+            <span className="text-xs text-orange-500">(Coming Soon)</span>
+          </div>
+          <div className="flex flex-col items-center cursor-not-allowed">
+            <span className="text-gray-400 text-sm">Interviews</span>
+            <span className="text-xs text-orange-500">(Coming Soon)</span>
+          </div>
+          <div className="flex flex-col items-center cursor-not-allowed">
+            <span className="text-gray-400 text-sm">Upskill</span>
+            <span className="text-xs text-orange-500">(Coming Soon)</span>
+          </div>
+          <div className="flex flex-col items-center cursor-not-allowed">
+            <span className="text-gray-400 text-sm">Tools</span>
+            <span className="text-xs text-orange-500">(Coming Soon)</span>
+          </div>
+          <div className="flex flex-col items-center cursor-not-allowed">
+            <span className="text-gray-400 text-sm">Blog</span>
+            <span className="text-xs text-orange-500">(Coming Soon)</span>
+          </div>
         </div>
 
         <div className="hidden lg:flex items-center space-x-4">
@@ -118,11 +133,26 @@ const Navbar = () => {
         {isMenuOpen && (
           <div className="lg:hidden mt-4">
             <Link to="/overview" className="block px-4 py-2 text-gray-700 text-sm hover:bg-gray-200">Overview</Link>
-            <Link to="/application-status" className="block px-4 py-2 text-gray-700 text-sm hover:bg-gray-200">Application Status</Link>
-            <Link to="/interviews" className="block px-4 py-2 text-gray-700 text-sm hover:bg-gray-200">Interviews</Link>
-            <Link to="/upskill" className="block px-4 py-2 text-gray-700 text-sm hover:bg-gray-200">Upskill</Link>
-            <Link to="/tools" className="block px-4 py-2 text-gray-700 text-sm hover:bg-gray-200">Tools</Link>
-            <Link to="/blog" className="block px-4 py-2 text-gray-700 text-sm hover:bg-gray-200">Blog</Link>
+            <div className="flex flex-col items-start px-4 py-2 cursor-not-allowed">
+              <span className="text-gray-400 text-sm">Application Status</span>
+              <span className="text-xs text-orange-500">(Coming Soon)</span>
+            </div>
+            <div className="flex flex-col items-start px-4 py-2 cursor-not-allowed">
+              <span className="text-gray-400 text-sm">Interviews</span>
+              <span className="text-xs text-orange-500">(Coming Soon)</span>
+            </div>
+            <div className="flex flex-col items-start px-4 py-2 cursor-not-allowed">
+              <span className="text-gray-400 text-sm">Upskill</span>
+              <span className="text-xs text-orange-500">(Coming Soon)</span>
+            </div>
+            <div className="flex flex-col items-start px-4 py-2 cursor-not-allowed">
+              <span className="text-gray-400 text-sm">Tools</span>
+              <span className="text-xs text-orange-500">(Coming Soon)</span>
+            </div>
+            <div className="flex flex-col items-start px-4 py-2 cursor-not-allowed">
+              <span className="text-gray-400 text-sm">Blog</span>
+              <span className="text-xs text-orange-500">(Coming Soon)</span>
+            </div>
 
             {isLoggedIn && (
               <>

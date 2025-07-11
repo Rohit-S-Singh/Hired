@@ -26,6 +26,7 @@
     "react-quill": "^2.0.0",
     "react-router-dom": "^6.26.1",
     "react-scripts": "5.0.1",
+    "react-step-progress-bar": "^1.0.3",
     "react-toastify": "^11.0.5",
     "recharts": "^2.12.7",
     "simple-peer": "^9.11.1",
