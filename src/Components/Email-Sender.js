@@ -15,7 +15,8 @@ import axios from 'axios';
 import { useGlobalContext } from './GlobalContext';
 
 const EmailSender = () => {
-  const { user, token } = useGlobalContext();
+  const { user } = useGlobalContext();
+  const token = localStorage.getItem("jwtToken");
   const [isConnected, setIsConnected] = useState(false);
   const [loading, setLoading] = useState(true);
   const [recruiters, setRecruiters] = useState([]);
@@ -28,9 +29,6 @@ const EmailSender = () => {
 
   const navigate = useNavigate();
   const [openRowId, setOpenRowId] = useState(null);
-
-
-
 
 
   useEffect(() => {
@@ -48,7 +46,43 @@ const EmailSender = () => {
           params: { userEmail: user?.email }
         });
 
-        setRecruiters(recruiterData?.recruiters || []);
+        // Fetch logs for all recruiters
+        const recruitersList = recruiterData?.recruiters || [];
+        const logsMap = {};
+        console.log(recruitersList);
+        await Promise.all(recruitersList.map(async (rec) => {
+          try {
+            const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/email-logs`, {
+              params: { recruiterId: rec._id, userEmail: user.email },
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            logsMap[rec._id] = data.logs || [];
+            
+            // Find the most recent sent email
+            const sentLogs = (data.logs || []).filter(log => log.status === 'thread_start');
+            const followUpLogs = (data.logs || []).filter(log => log.status === 'follow_up');
+            
+            // Use the most recent log (either sent or follow-up)
+            const allLogs = [...sentLogs, ...followUpLogs].sort((a, b) => 
+              new Date(b.createdAt || b.sentAt) - new Date(a.createdAt || a.sentAt)
+            );
+            
+            if (allLogs.length > 0) {
+              const latestLog = allLogs[0];
+              rec.status = latestLog.status === 'follow_up' ? 'Follow-up Sent' : 'thread_start';
+              rec.sentAt = latestLog.sentAt || latestLog.createdAt;
+            } else {
+              rec.status = 'No Response';
+              rec.sentAt = null;
+            }
+          } catch (e) {
+            logsMap[rec._id] = [];
+            rec.status = 'No Response';
+            rec.sentAt = null;
+          }
+        }));
+        setEmailLogs(logsMap);
+        setRecruiters(recruitersList);
       } catch (error) {
         console.error('Error in connection check or fetching recruiters:', error);
       } finally {
@@ -72,18 +106,70 @@ const EmailSender = () => {
 
   const fetchEmailLogs = async (recruiterId) => {
     try {
-      const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/email-logs`, {
-        params: {
-          recruiterId,
-          userEmail: user?.email,
+      // Check if we have the required data
+      if (!user?.email) {
+        console.error("User email not available");
+        return;
+      }
+
+      if (!token) {
+        console.error("Token not available");
+        return;
+      }
+
+      // Find the recruiter to get their email and threadId
+      const recruiter = recruiters.find(r => r._id === recruiterId);
+      if (!recruiter) {
+        console.error("Recruiter not found");
+        return;
+      }
+
+      // Get existing email logs for this recruiter
+      const existingLogs = emailLogs[recruiterId] || [];
+      console.log("Existing logs for recruiter:", existingLogs);
+
+      // Find threadId from existing logs
+      const threadStartLog = existingLogs.find(log => log.status === 'thread_start');
+      const threadId = threadStartLog?.threadId || threadStartLog?.messageId || recruiter.threadId || recruiter._id;
+
+      // Debug logging
+      console.log("User object:", user);
+      console.log("User email:", user?.email);
+      console.log("Recruiter object:", recruiter);
+      console.log("Thread start log:", threadStartLog);
+      console.log("ThreadId from logs:", threadId);
+      console.log("Token:", token);
+
+      const requestData = {
+        email: user.email || "rohitbwb@gmail.com", // Fallback for testing
+        threadId: threadId
+      };
+
+      console.log("Final request data:", requestData);
+
+      const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/email-journey`, {
+        data: requestData,
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}` 
         },
-        headers: { Authorization: `Bearer ${token}` },
       });
 
-      setEmailLogs((prevLogs) => ({
-        ...prevLogs,
-        [recruiterId]: data.logs || [],
-      }));
+      console.log("API Response:", data);
+      
+      if (data.success && data.logs) {
+        console.log("Setting logs for recruiter:", recruiterId, data.logs);
+        setEmailLogs((prevLogs) => ({
+          ...prevLogs,
+          [recruiterId]: data.logs,
+        }));
+      } else {
+        console.log("No logs found or API call failed");
+        setEmailLogs((prevLogs) => ({
+          ...prevLogs,
+          [recruiterId]: [],
+        }));
+      }
     } catch (error) {
       console.error("Error fetching email logs:", error);
     }
@@ -182,9 +268,6 @@ const EmailSender = () => {
       }
 
       console.log("finalHtml", finalHtml);
-
-      alert("finalHtml", finalHtml);
-
       // Optionally, replace variables in the template here if needed
       // Example: finalHtml = finalHtml.replace(/{{recruiter.name}}/g, recruiter.name);
       finalHtml = finalHtml.replace(/{{\s*recruiter\.name\s*}}/g, recruiter.name);
@@ -207,7 +290,11 @@ const EmailSender = () => {
 
       setRecruiters(prev =>
         prev.map(r =>
-          r._id === recruiter._id ? { ...r, status: "Sent", sentAt: new Date().toISOString().split('T')[0] } : r
+          r._id === recruiter._id ? { 
+            ...r, 
+            status: "thread_start", 
+            sentAt: new Date().toISOString() 
+          } : r
         )
       );
     } catch (error) {
@@ -215,6 +302,102 @@ const EmailSender = () => {
     } finally {
       setTimeout(() => setSendingEmail(false), 1500);
     }
+  };
+
+  const handleFollowUp = async (recruiter) => {
+    if (!resumeFile) {
+      alert("Please upload your resume before sending the follow-up email.");
+      return;
+    }
+
+    setSendingEmail(true);
+    try {
+      // Get the original email logs to find the thread ID
+      const logs = emailLogs[recruiter._id] || [];
+      const originalEmail = logs.find(log => log.status === 'thread_start');
+      
+      if (!originalEmail) {
+        alert('No original email found to reply to.');
+        setSendingEmail(false);
+        return;
+      }
+
+      // Fetch the template from the backend
+      let finalHtml = '';
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/get-html-template`, {
+          params: { email: user?.email },
+        });
+        if (response.data && response.data.success && response.data.htmlEmailTemplate) {
+          finalHtml = response.data.htmlEmailTemplate.finalHtml;
+        }
+      } catch (fetchTemplateError) {
+        console.error('Error fetching HTML template:', fetchTemplateError);
+        alert('Failed to fetch email template.');
+        setSendingEmail(false);
+        return;
+      }
+
+      // Replace variables in the template
+      finalHtml = finalHtml.replace(/{{\s*recruiter\.name\s*}}/g, recruiter.name);
+
+      // Send follow-up as JSON with threadId
+      const followUpData = {
+        to: recruiter.email,
+        subject: "Re: Application For Engineering Roles (SDE-1)",
+        body: finalHtml,
+        from: user?.email,
+        threadId: originalEmail.threadId || originalEmail.messageId
+      };
+
+      await axios.post(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/send-email`, followUpData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      // Update recruiter status to show follow-up sent
+      setRecruiters(prev =>
+        prev.map(r =>
+          r._id === recruiter._id ? { 
+            ...r, 
+            status: "follow_up", 
+            sentAt: new Date().toISOString() 
+          } : r
+        )
+      );
+
+      // Refresh logs for this recruiter
+      await fetchEmailLogs(recruiter._id);
+    } catch (error) {
+      console.error('Error sending follow-up email:', error);
+    } finally {
+      setTimeout(() => setSendingEmail(false), 1500);
+    }
+  };
+
+  // Helper function to check if follow-up is needed
+  const needsFollowUp = (recruiter) => {
+    const logs = emailLogs[recruiter._id] || [];
+    const hasSentEmail = logs.some(log => log.status === 'thread_start');
+    const hasFollowUp = logs.some(log => log.status === 'follow_up');
+    const hasClosed = logs.some(log => log.status === 'closed');
+    
+    // Show follow-up button if email sent, no follow-up yet, and not closed
+    return hasSentEmail && !hasFollowUp && !hasClosed;
+  };
+
+  // Helper function to check if initial email has been sent
+  const hasSentEmail = (recruiter) => {
+    const logs = emailLogs[recruiter._id] || [];
+    return logs.some(log => log.status === 'thread_start');
+  };
+
+  // Helper function to check if conversation is closed
+  const isConversationClosed = (recruiter) => {
+    const logs = emailLogs[recruiter._id] || [];
+    return logs.some(log => log.status === 'closed');
   };
 
 
@@ -342,9 +525,13 @@ const EmailSender = () => {
                     <span
                       className={`px-2 py-1 rounded text-xs font-semibold ${r.status === "Responded"
                           ? "bg-green-100 text-green-600"
-                          : r.status === "Sent"
+                          : r.status === "thread_start"
                             ? "bg-blue-100 text-blue-600"
-                            : "bg-yellow-100 text-yellow-600"
+                            : r.status === "follow_up"
+                              ? "bg-orange-100 text-orange-600"
+                              : r.status === "closed"
+                                ? "bg-gray-100 text-gray-600"
+                                : "bg-yellow-100 text-yellow-600"
                         }`}
                     >
                       {r.status || "No Response"}
@@ -354,24 +541,46 @@ const EmailSender = () => {
                     {r.sentAt ? (
                       <>
                         <FaClock className="inline mr-1" />
-                        {r.sentAt}
+                        {new Date(r.sentAt).toLocaleString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
                       </>
                     ) : (
                       "-"
                     )}
                   </td>
                   <td className="px-4 py-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSendMail(r);
-                      }}
-                      disabled={sendingEmail}
-                      className={`bg-green-600 text-white text-sm px-3 py-1 rounded hover:bg-green-700 ${sendingEmail ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
-                    >
-                      Send Mail
-                    </button>
+                    {!hasSentEmail(r) ? (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSendMail(r);
+                        }}
+                        disabled={sendingEmail}
+                        className={`bg-green-600 text-white text-sm px-3 py-1 rounded hover:bg-green-700 ${sendingEmail ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
+                      >
+                        Send Mail
+                      </button>
+                    ) : hasSentEmail(r) && !isConversationClosed(r) ? (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFollowUp(r);
+                        }}
+                        disabled={sendingEmail}
+                        className={`bg-orange-600 text-white text-sm px-3 py-1 rounded hover:bg-orange-700 ${sendingEmail ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
+                      >
+                        Take Follow-up
+                      </button>
+                    ) : (
+                      <span className="text-sm text-gray-500">Conversation Closed</span>
+                    )}
                     {resumeFile && (
                       <p className="text-sm text-green-600 mt-1">Selected: {resumeFile.name}</p>
                     )}
@@ -383,7 +592,10 @@ const EmailSender = () => {
                   <tr>
                     <td colSpan="5">
                       <StatusAccordion
-                        recruiter={r}
+                        recruiter={{
+                          ...r,
+                          threadId: r.threadId || r._id // Use threadId if available, otherwise use _id
+                        }}
                         logs={emailLogs[r._id] || []}
                       />
                     </td>

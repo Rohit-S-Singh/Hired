@@ -8,96 +8,96 @@ const StatusAccordion = ({ recruiter, logs }) => {
 
   recruiter = recruiter || { name: "G Y SUHAS" };
 
-  // Dummy logs if none provided
-  // if (!logs || logs.length === 0) {
-  logs = [
-    { status: "sent", createdAt: "2025-07-01T10:00:00Z" },
-    { status: "followed_up", createdAt: "2025-09-03T10:00:00Z" },
-    { status: "followed_up", createdAt: "2025-10-03T10:00Z" },
-    { status: "followed_up", createdAt: "2025-10-03T10:00Z" },
-    { status: "followed_up", createdAt: "2025-10-03T10:00Z" },
-    { status: "followed_up", createdAt: "2025-10-03T10:00Z" },
-    { status: "closed", createdAt: "2025-11-05T10:00Z" },
-  ];
-  // }
+  console.log(logs);
 
-  // Create arrays for each status type to handle multiple entries
-  const statusGroups = logs.reduce((acc, log) => {
-    if (!acc[log.status]) {
-      acc[log.status] = [];
-    }
-    acc[log.status].push(log);
-    return acc;
-  }, {});
-
+  // Process logs to create steps with automatic no-reply insertion
   const steps = [];
-
-  // Step 1: Sent
-  if (statusGroups.sent && statusGroups.sent.length > 0) {
-    steps.push({
-      title: "Sent",
-      icon: <FaCheckCircle className="text-green-600 text-3xl" />,
-      date: statusGroups.sent[0]?.createdAt,
-    });
-  }
-
-  // Step 2: No Reply after Sent?
-  if (statusGroups.sent && !statusGroups.replied && statusGroups.followed_up) {
-    steps.push({
-      title: "No Reply",
-      icon: <FaTimesCircle className="text-red-500 text-3xl" />,
-    });
-  }
-
-  // Step 3: Follow-ups (create separate step for each follow-up)
-  if (statusGroups.followed_up && statusGroups.followed_up.length > 0) {
-    statusGroups.followed_up.forEach((followUp, index) => {
-      // Add follow-up step
-      steps.push({
-        title: `Follow-up ${index + 1}`,
-        icon: <FaCheckCircle className="text-green-600 text-3xl" />,
-        date: followUp.createdAt,
-      });
+  
+  if (logs && logs.length > 0) {
+    // Create a new array with no-reply states inserted before follow-ups
+    const processedLogs = [];
+    
+    logs.forEach((log, index) => {
+      // Add the current log
+      processedLogs.push(log);
       
-      // Add "No Reply" step after each follow-up (except the last one if there's a reply or closed)
-      const isLastFollowUp = index === statusGroups.followed_up.length - 1;
-      const hasReply = statusGroups.replied && statusGroups.replied.length > 0;
-      const hasClosed = statusGroups.closed && statusGroups.closed.length > 0;
-      
-      if (!isLastFollowUp || (!hasReply && !hasClosed)) {
-        steps.push({
-          title: "No Reply",
-          icon: <FaTimesCircle className="text-red-500 text-3xl" />,
-        });
+      // If this is a follow_up and the next log is not a no-reply, insert a no-reply
+      if (log.status === 'follow_up') {
+        const nextLog = logs[index + 1];
+        if (nextLog && nextLog.status !== 'no-reply') {
+          processedLogs.push({
+            status: 'no-reply',
+            createdAt: null
+          });
+        }
       }
     });
-  }
-
-  // Step 4: No Reply after Follow-up?
-  if (statusGroups.followed_up && !statusGroups.replied && statusGroups.closed) {
-    steps.push({
-      title: "No Reply",
-      icon: <FaTimesCircle className="text-red-500 text-3xl" />,
+    
+    // Process the enhanced logs to create steps
+    processedLogs.forEach((log, index) => {
+      switch (log.status) {
+        case 'thread_start':
+          steps.push({
+            title: "Thread Start",
+            icon: <FaCheckCircle className="text-green-600 text-3xl" />,
+            date: log.createdAt,
+          });
+          break;
+          
+        case 'no-reply':
+          steps.push({
+            title: "No Reply",
+            icon: <FaTimesCircle className="text-red-500 text-3xl" />,
+            date: log.createdAt,
+          });
+          break;
+          
+        case 'follow_up':
+          // Count how many follow-ups we've had so far
+          const followUpCount = processedLogs.slice(0, index + 1).filter(l => l.status === 'follow_up').length;
+          steps.push({
+            title: `Follow-up ${followUpCount}`,
+            icon: <FaCheckCircle className="text-green-600 text-3xl" />,
+            date: log.createdAt,
+          });
+          break;
+          
+        case 'closed':
+          steps.push({
+            title: "Closed",
+            icon: <div className="w-4 h-4 rounded-full bg-gray-400" />,
+            date: log.createdAt,
+          });
+          break;
+          
+        default:
+          break;
+      }
     });
-  }
-
-  // Step 5: Closed
-  if (statusGroups.closed && statusGroups.closed.length > 0) {
-    steps.push({
-      title: "Closed",
-      icon: <div className="w-4 h-4 rounded-full bg-gray-400" />,
-      date: statusGroups.closed[0]?.createdAt,
-    });
+    
+    // Add closed state at the end if not already present
+    const hasClosedState = steps.some(step => step.title === "Closed");
+    if (!hasClosedState && steps.length > 0) {
+      steps.push({
+        title: "Closed",
+        icon: <div className="w-4 h-4 rounded-full bg-gray-400" />,
+        date: null,
+      });
+    }
   }
 
   // Animate progress on component mount
   useEffect(() => {
     const timer = setTimeout(() => {
-      setProgressPercent(80);
+      // Calculate progress based on steps, excluding the last step if it's 'closed'
+      const totalSteps = steps.length;
+      const stepsToFill = steps[totalSteps - 1]?.title === "Closed" ? totalSteps - 1 : totalSteps;
+      const progressPercent = totalSteps > 0 ? (stepsToFill / totalSteps) * 100 : 0;
+      setProgressPercent(progressPercent);
     }, 500); // Start animation after 500ms
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [steps]);
 
   return (
     <div className="p-4 bg-white shadow-md w-full border-b-2 border-l-2 border-r-2 border-gray-300">

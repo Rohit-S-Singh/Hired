@@ -3,6 +3,9 @@ import Mustache from "mustache";
 import Lottie from "lottie-react";
 import emailTemplateAnimation from "../assets/Email-Template.json";
 
+import { useGlobalContext } from './GlobalContext'; // ⬅️ import context
+
+
 const TemplateEditor = () => {
   const [template, setTemplate] = useState(`
     <div style="font-family: 'Segoe UI', Inter, sans-serif; color: #333; line-height: 1.6; max-width: 700px;">
@@ -55,6 +58,7 @@ const TemplateEditor = () => {
   };
 
   const renderedHtml = Mustache.render(template, previewData);
+  const { user } = useGlobalContext(); // ⬅️ get user from global context
 
   const handleSaveTemplate = () => {
     // Replace variables in the template with values from previewData
@@ -72,7 +76,7 @@ const TemplateEditor = () => {
     }
 
     const payload = {
-      email: 'rohitshekrsingh@gmail.com', // Replace with dynamic user email if available
+      email: user?.email, // Replace with dynamic user email if available
       finalHtml: finalHtml,
     };
 
