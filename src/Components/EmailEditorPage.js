@@ -9,11 +9,11 @@ import { useGlobalContext } from './GlobalContext'; // ⬅️ import context
 const TemplateEditor = () => {
   const [template, setTemplate] = useState(`
     <div style="font-family: 'Segoe UI', Inter, sans-serif; color: #333; line-height: 1.6; max-width: 700px;">
-      <p>Hi {{recruiter.name}}, </p>
+      <p>Hi {{recruiter.name}},</p>
 
-      <p style="margin-top: 20px;">Introduction</p>
+      <p style="margin-top: 20px;">{{introduction}}</p>
 
-      <p style="margin-top: 20px;">Enter Your Experience and Skill sets</p>
+      <p style="margin-top: 20px;">{{skills}}</p>
 
       <p style="margin-top: 20px;">
         I am reaching out to you to find in-office or remote full-time opportunities at your organization.
@@ -48,13 +48,42 @@ const TemplateEditor = () => {
     experience: "Enter Experience",
     name: "Enter Name",
     phone: "Enter Phone Number",
+    introduction: "Enter your introduction here...",
+    skills: "Enter your skills and experience here...",
   });
+
+  const [followUpTemplates, setFollowUpTemplates] = useState([
+    {
+      id: 1,
+      name: "Follow-up 1",
+      message: "Hi {{recruiter.name}},\n\nI hope this email finds you well. I wanted to follow up on my previous application for engineering roles at your organization.\n\nI remain very interested in the opportunity and would love to discuss how my skills and experience could contribute to your team.\n\nLooking forward to hearing from you.\n\nBest regards,\n{{name}}"
+    }
+  ]);
 
   const handleInputChange = (key, value) => {
     setPreviewData((prev) => ({
       ...prev,
       [key]: value,
     }));
+  };
+
+  const addFollowUpTemplate = () => {
+    const newId = Math.max(...followUpTemplates.map(t => t.id), 0) + 1;
+    setFollowUpTemplates(prev => [...prev, {
+      id: newId,
+      name: `Follow-up ${newId}`,
+      message: "Hi {{recruiter.name}},\n\nI hope this email finds you well. I wanted to follow up on my previous application for engineering roles at your organization.\n\nI remain very interested in the opportunity and would love to discuss how my skills and experience could contribute to your team.\n\nLooking forward to hearing from you.\n\nBest regards,\n{{name}}"
+    }]);
+  };
+
+  const updateFollowUpTemplate = (id, field, value) => {
+    setFollowUpTemplates(prev => prev.map(template => 
+      template.id === id ? { ...template, [field]: value } : template
+    ));
+  };
+
+  const removeFollowUpTemplate = (id) => {
+    setFollowUpTemplates(prev => prev.filter(template => template.id !== id));
   };
 
   const renderedHtml = Mustache.render(template, previewData);
@@ -78,6 +107,7 @@ const TemplateEditor = () => {
     const payload = {
       email: user?.email, // Replace with dynamic user email if available
       finalHtml: finalHtml,
+      followUpTemplates: followUpTemplates,
     };
 
     console.log("payload", payload); 
@@ -130,16 +160,70 @@ const TemplateEditor = () => {
             <h3 className="text-lg font-semibold mb-3 text-gray-800">Placeholder Inputs</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {Object.entries(previewData).map(([key, value]) => (
-                <div key={key}>
+                <div key={key} className={key === 'introduction' || key === 'skills' ? 'sm:col-span-2' : ''}>
                   <label className="block text-sm font-medium capitalize mb-1 text-gray-600">{key}</label>
-                  <input
-                    value={value}
-                    placeholder={key}
-                    onChange={(e) => handleInputChange(key, e.target.value)}
-                    className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
-                  />
+                  {key === 'introduction' || key === 'skills' ? (
+                    <textarea
+                      value={value}
+                      placeholder={key}
+                      onChange={(e) => handleInputChange(key, e.target.value)}
+                      rows={4}
+                      className="border border-gray-300 rounded p-3 w-full focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white resize-none"
+                      style={{ minHeight: "100px", maxHeight: "150px" }}
+                    />
+                  ) : (
+                    <input
+                      value={value}
+                      placeholder={key}
+                      onChange={(e) => handleInputChange(key, e.target.value)}
+                      className="border border-gray-300 rounded p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
+                    />
+                  )}
                 </div>
               ))}
+            </div>
+
+            {/* Follow-up Templates Section */}
+            <div className="mt-8">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">Follow-up Message Templates</h3>
+                <button
+                  onClick={addFollowUpTemplate}
+                  className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition"
+                >
+                  + Add Template
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                {followUpTemplates.map((template) => (
+                  <div key={template.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <div className="flex justify-between items-center mb-3">
+                      <input
+                        type="text"
+                        value={template.name}
+                        onChange={(e) => updateFollowUpTemplate(template.id, 'name', e.target.value)}
+                        className="text-lg font-semibold bg-transparent border-none focus:outline-none focus:ring-0"
+                        placeholder="Template Name"
+                      />
+                      <button
+                        onClick={() => removeFollowUpTemplate(template.id)}
+                        className="text-red-600 hover:text-red-800 text-sm"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <textarea
+                      value={template.message}
+                      onChange={(e) => updateFollowUpTemplate(template.id, 'message', e.target.value)}
+                      rows={6}
+                      className="w-full border border-gray-300 rounded p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white resize-none"
+                      placeholder="Enter your follow-up message template..."
+                      style={{ minHeight: "120px", maxHeight: "200px" }}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 

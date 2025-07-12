@@ -25,6 +25,11 @@ const EmailSender = () => {
   const [newRecruiter, setNewRecruiter] = useState({ name: "", email: "" });
   const [resumeFile, setResumeFile] = useState(null);
   const [emailLogs, setEmailLogs] = useState({});
+  // Removed introduction and experience state
+
+  const [showFollowUpModal, setShowFollowUpModal] = useState(false);
+  const [followUpTemplates, setFollowUpTemplates] = useState([]);
+  const [selectedFollowUpTemplate, setSelectedFollowUpTemplate] = useState(null);
 
 
   const navigate = useNavigate();
@@ -242,6 +247,48 @@ const EmailSender = () => {
     reader.readAsArrayBuffer(file);
   };
 
+  const fetchFollowUpTemplates = async () => {
+    try {
+      const userEmail = user?.email;
+      if (!userEmail) return;
+      
+      console.log('Fetching templates for email:', userEmail);
+      
+      const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/fetch-followup-templates/${userEmail}`, {
+        headers: { 'Content-Type': 'application/json' },
+        data: { email: userEmail },
+      });
+      
+      console.log('Follow-up templates response:', data);
+      console.log('Data structure:', JSON.stringify(data, null, 2));
+      
+      // Try different possible property names
+      const rawTemplates = data.followupTemplates || data.templates || data.followUpTemplates || data.follow_up_templates || [];
+      console.log('Extracted templates:', rawTemplates);
+      
+      // Convert string templates to object format
+      const templates = Array.isArray(rawTemplates) ? rawTemplates.map((template, index) => {
+        if (typeof template === 'string') {
+          return {
+            id: index + 1,
+            name: `Template ${index + 1}`,
+            message: template
+          };
+        }
+        return template; // If it's already an object, keep it as is
+      }) : [];
+      
+      console.log('Processed templates:', templates);
+      
+      setFollowUpTemplates(templates);
+      setShowFollowUpModal(true);
+    } catch (error) {
+      console.error('Error fetching follow-up templates:', error);
+      setFollowUpTemplates([]);
+      setShowFollowUpModal(true);
+    }
+  };
+
 
   const handleSendMail = async (recruiter) => {
     if (!resumeFile) {
@@ -268,9 +315,11 @@ const EmailSender = () => {
       }
 
       console.log("finalHtml", finalHtml);
-      // Optionally, replace variables in the template here if needed
-      // Example: finalHtml = finalHtml.replace(/{{recruiter.name}}/g, recruiter.name);
+      // Replace variables in the template
       finalHtml = finalHtml.replace(/{{\s*recruiter\.name\s*}}/g, recruiter.name);
+      finalHtml = finalHtml.replace(/{{\s*name\s*}}/g, user?.username || 'User');
+      finalHtml = finalHtml.replace(/{{\s*name\s*}}/g, user?.username || 'User');
+      // Remove all logic that replaces {{introduction}} and {{experience}} in the email template
 
       const formData = new FormData();
       formData.append("from", user?.email);
@@ -304,12 +353,7 @@ const EmailSender = () => {
     }
   };
 
-  const handleFollowUp = async (recruiter) => {
-    if (!resumeFile) {
-      alert("Please upload your resume before sending the follow-up email.");
-      return;
-    }
-
+  const handleFollowUp = async (recruiter, followUpMessage) => {
     setSendingEmail(true);
     try {
       // Get the original email logs to find the thread ID
@@ -324,22 +368,25 @@ const EmailSender = () => {
 
       // Fetch the template from the backend
       let finalHtml = '';
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/get-html-template`, {
-          params: { email: user?.email },
-        });
-        if (response.data && response.data.success && response.data.htmlEmailTemplate) {
-          finalHtml = response.data.htmlEmailTemplate.finalHtml;
+      if (followUpMessage) {
+        finalHtml = followUpMessage;
+      } else {
+        try {
+          const response = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/get-html-template`, {
+            params: { email: user?.email },
+          });
+          if (response.data && response.data.success && response.data.htmlEmailTemplate) {
+            finalHtml = response.data.htmlEmailTemplate.finalHtml;
+          }
+        } catch (fetchTemplateError) {
+          console.error('Error fetching HTML template:', fetchTemplateError);
+          alert('Failed to fetch email template.');
+          setSendingEmail(false);
+          return;
         }
-      } catch (fetchTemplateError) {
-        console.error('Error fetching HTML template:', fetchTemplateError);
-        alert('Failed to fetch email template.');
-        setSendingEmail(false);
-        return;
+        // Replace variables in the template
+        finalHtml = finalHtml.replace(/{{\s*recruiter\.name\s*}}/g, recruiter.name);
       }
-
-      // Replace variables in the template
-      finalHtml = finalHtml.replace(/{{\s*recruiter\.name\s*}}/g, recruiter.name);
 
       // Send follow-up as JSON with threadId
       const followUpData = {
@@ -377,16 +424,7 @@ const EmailSender = () => {
     }
   };
 
-  // Helper function to check if follow-up is needed
-  const needsFollowUp = (recruiter) => {
-    const logs = emailLogs[recruiter._id] || [];
-    const hasSentEmail = logs.some(log => log.status === 'thread_start');
-    const hasFollowUp = logs.some(log => log.status === 'follow_up');
-    const hasClosed = logs.some(log => log.status === 'closed');
-    
-    // Show follow-up button if email sent, no follow-up yet, and not closed
-    return hasSentEmail && !hasFollowUp && !hasClosed;
-  };
+
 
   // Helper function to check if initial email has been sent
   const hasSentEmail = (recruiter) => {
@@ -491,6 +529,9 @@ const EmailSender = () => {
           />
         </div>
 
+        {/* Removed all logic that replaces {{introduction}} and {{experience}} in the email template */}
+
+
       </div>
 
 
@@ -570,7 +611,7 @@ const EmailSender = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleFollowUp(r);
+                          fetchFollowUpTemplates();
                         }}
                         disabled={sendingEmail}
                         className={`bg-orange-600 text-white text-sm px-3 py-1 rounded hover:bg-orange-700 ${sendingEmail ? "opacity-50 cursor-not-allowed" : ""
@@ -669,6 +710,79 @@ const EmailSender = () => {
                       onClick={handleAddRecruiter}
                     >
                       Add
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+
+      {/* Modal to Select Follow-up Template */}
+      <Transition appear show={showFollowUpModal} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={() => setShowFollowUpModal(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm" />
+          </Transition.Child>
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 mb-4">
+                    Select a Follow-up Template
+                  </Dialog.Title>
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {followUpTemplates.length === 0 && (
+                      <div className="text-gray-500 text-center py-4">
+                        <div>No follow-up templates found.</div>
+                        <div className="text-xs text-gray-400 mt-1">Please create templates in the Email Editor first.</div>
+                      </div>
+                    )}
+                    {followUpTemplates.map((tpl, idx) => (
+                      <div key={tpl.id || idx} className={`border rounded p-4 cursor-pointer transition-colors ${selectedFollowUpTemplate === tpl ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
+                        onClick={() => setSelectedFollowUpTemplate(tpl)}>
+                        <div className="font-semibold mb-2 text-gray-800">{tpl.name || `Template ${idx + 1}`}</div>
+                        <div className="text-sm whitespace-pre-line text-gray-700 max-h-32 overflow-y-auto bg-gray-50 p-2 rounded">
+                          {tpl.message || 'No message content'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-6 flex justify-end gap-2">
+                    <button
+                      className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                      onClick={() => setShowFollowUpModal(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                      disabled={!selectedFollowUpTemplate}
+                      onClick={async () => {
+                        setShowFollowUpModal(false);
+                        if (selectedFollowUpTemplate) {
+                          await handleFollowUp(openRowId && recruiters.find(r => r._id === openRowId), selectedFollowUpTemplate.message);
+                        }
+                      }}
+                    >
+                      Send Follow-up
                     </button>
                   </div>
                 </Dialog.Panel>
