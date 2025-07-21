@@ -20,6 +20,8 @@ const Navbar = () => {
     navigate("/login");
   };
 
+  console.log("Userr̥",user)
+
   const handleProfileClick = () => {
     navigate("/profile");
   };
@@ -121,9 +123,9 @@ const Navbar = () => {
               {/* Avatar + Dropdown */}
               <div className="relative">
                 <img
-                  src={user?.picture || profile}
+                  src={user?.picture && typeof user.picture === 'string' && user.picture.trim() !== '' ? user.picture : 'https://ui-avatars.com/api/?name=User&background=random'}
                   alt="User Avatar"
-                  className="h-8 w-8 rounded-full cursor-pointer"
+                  className="h-12 w-12 min-w-[3rem] min-h-[3rem] rounded-full cursor-pointer border-2 border-gray-300 bg-white object-cover"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 />
                 {isDropdownOpen && (

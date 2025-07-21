@@ -100,7 +100,7 @@ const Dashboard = () => {
             <FaBriefcase className="text-green-500 text-3xl" />
             <div>
               <h2 className="text-lg font-medium mb-2">New Applications (Past Week)</h2>
-              <p className="text-3xl font-bold">{applications.length}</p>
+              <p className="text-3xl font-bold">{Array.isArray(applications) ? applications.length : 0}</p>
             </div>
           </div>
           <div className="bg-blue-100 p-4 rounded-lg shadow-md flex items-center space-x-4">
@@ -115,7 +115,7 @@ const Dashboard = () => {
             <FaEnvelope className="text-yellow-500 text-3xl" />
             <div>
               <h2 className="text-lg font-medium mb-2">Cold Emails Sent</h2>
-              <p className="text-3xl font-bold">{applications.length}</p> {/* ⬅️ display cold emails sent */}
+              <p className="text-3xl font-bold">{coldEmailsSent}</p> {/* ⬅️ display cold emails sent */}
             </div>
           </div>
           <div className="bg-purple-100 p-4 rounded-lg shadow-md flex items-center space-x-4">

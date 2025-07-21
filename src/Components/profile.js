@@ -60,7 +60,7 @@ const Profile = () => {
       <div className="lg:w-1/4 bg-white p-6 shadow-md rounded-md">
         <div className="flex flex-col items-center">
           <img
-            src={user?.picture || "https://via.placeholder.com/150"}
+            src={user?.picture && typeof user.picture === 'string' && user.picture.trim() !== '' ? user.picture : 'https://ui-avatars.com/api/?name=User&background=random'}
             alt="Profile"
             className="w-32 h-32 rounded-full mb-4"
           />

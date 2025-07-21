@@ -43,9 +43,13 @@ const Login = () => {
       const response = await axios.post(url, { token: idToken });
 
       if (response.data.token) {
-        console.log("Google login successful:", response.data);
+        console.log("Google login successful:", response);
         setIsLoggedIn(true);
-        setUser({ username: response.data.username, email: response.data.email });
+        setUser({ 
+          username: response.data.username, 
+          email: response.data.email, 
+          picture: response.data.avatar // <-- set avatar as picture
+        });
         localStorage.setItem("jwtToken", response.data.token);
         toast.success("Google login successful!");
         setTimeout(() => navigate("/overview"), 2000);
