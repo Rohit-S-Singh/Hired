@@ -22,6 +22,8 @@ import { useGlobalContext } from './Components/GlobalContext';
 import { LoaderProvider, useLoader } from './Components/LoaderContext';
 import LoaderOverlay from './Components/LoaderOverlay';
 import About from './Components/about';
+// import PostJobForm from './Components/PostJobForm.jsx';
+import JobBoard from './Components/JobBoard';
 
 const AppRoutes = () => {
   const { isLoggedIn, setIsLoggedIn } = useGlobalContext();
@@ -60,6 +62,8 @@ const AppRoutes = () => {
             <Route path="/email-setup" element={<EmailSetup />} />
             <Route path="/email-editor" element={<EmailEditorPage />} />
             <Route path="/about" element={<About />} />
+            {/* <Route path="/postjob" element={<PostJobForm onJobSubmit={() => {}} />} /> */}
+            <Route path="/jobs" element={<JobBoard />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </>

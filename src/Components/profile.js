@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { useGlobalContext } from "./GlobalContext";
 
 const Profile = () => {
+  const { user } = useGlobalContext();
   // States for handling user data
   const [profile, setProfile] = useState({
     name: "Rohit Shekhar Singh",
@@ -58,7 +60,7 @@ const Profile = () => {
       <div className="lg:w-1/4 bg-white p-6 shadow-md rounded-md">
         <div className="flex flex-col items-center">
           <img
-            src="https://via.placeholder.com/150"
+            src={user?.picture || "https://via.placeholder.com/150"}
             alt="Profile"
             className="w-32 h-32 rounded-full mb-4"
           />

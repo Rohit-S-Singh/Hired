@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, Fragment } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import profile from "../assets/profile.png";
-import { FaGoogle, FaMicrosoft, FaVideo } from "react-icons/fa";
+import { FaGoogle, FaMicrosoft, FaVideo, FaBell } from "react-icons/fa";
 import { Dialog, Transition } from "@headlessui/react";
 import { useGlobalContext } from "./GlobalContext";
 
@@ -9,9 +9,9 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const navigate = useNavigate();
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const dropdownRef = useRef(null);
-
+  const navigate = useNavigate();
   const { isLoggedIn, user, setIsLoggedIn, setUser } = useGlobalContext();
 
   const handleSignOut = () => {
@@ -24,10 +24,34 @@ const Navbar = () => {
     navigate("/profile");
   };
 
+  // Dummy notifications
+  const notifications = [
+    {
+      id: 1,
+      name: "Brigid Dawson",
+      message: "followed you",
+      time: "4 hours ago",
+      avatar: "https://randomuser.me/api/portraits/women/65.jpg",
+    },
+    {
+      id: 2,
+      name: "John Dwyer",
+      message: "liked your post",
+      time: "Yesterday",
+      avatar: "https://randomuser.me/api/portraits/men/75.jpg",
+    },
+  ];
+
+  const hasUnreadNotifications = notifications.length > 0;
+
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
         setIsDropdownOpen(false);
+        setIsNotifOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -37,64 +61,67 @@ const Navbar = () => {
   return (
     <nav className="bg-white shadow-sm p-4 relative">
       <div className="container mx-auto flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <img src="/hired.png" alt={process.env.APP_NAME} className="h-14" />
-        </div>
+        {/* Logo */}
+        <img src="/hired.png" alt="Hired" className="h-14" />
 
-        <div className="lg:hidden">
-          <button
-            className="text-gray-700 focus:outline-none"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
-            </svg>
-          </button>
-        </div>
-
+        {/* Nav Links */}
         <div className={`flex space-x-6 lg:flex ${isMenuOpen ? "block" : "hidden"} lg:block`}>
           <Link to="/home" className="text-gray-700 text-sm hover:text-blue-500">Home</Link>
           <Link to="/overview" className="text-gray-700 text-sm hover:text-blue-500">Overview</Link>
-          <div className="flex flex-col items-center cursor-not-allowed">
-            <span className="text-gray-400 text-sm">Application Status</span>
-            <span className="text-xs text-orange-500">(Coming Soon)</span>
-          </div>
-          <div className="flex flex-col items-center cursor-not-allowed">
-            <span className="text-gray-400 text-sm">Interviews</span>
-            <span className="text-xs text-orange-500">(Coming Soon)</span>
-          </div>
-          <div className="flex flex-col items-center cursor-not-allowed">
-            <span className="text-gray-400 text-sm">Upskill</span>
-            <span className="text-xs text-orange-500">(Coming Soon)</span>
-          </div>
-          <div className="flex flex-col items-center cursor-not-allowed">
-            <span className="text-gray-400 text-sm">Tools</span>
-            <span className="text-xs text-orange-500">(Coming Soon)</span>
-          </div>
-          <div className="flex flex-col items-center cursor-not-allowed">
-            <span className="text-gray-400 text-sm">Blog</span>
-            <span className="text-xs text-orange-500">(Coming Soon)</span>
-          </div>
+          {isLoggedIn && <Link to="/postjob" className="text-gray-700 text-sm hover:text-blue-500">Add Job</Link>}
+          {isLoggedIn && <Link to="/jobs" className="text-gray-700 text-sm hover:text-blue-500">Jobs</Link>}
         </div>
 
-        <div className="hidden lg:flex items-center space-x-4">
+        {/* Right Section */}
+        <div className="hidden lg:flex items-center space-x-4 relative">
           {isLoggedIn ? (
             <>
-              <button
-                className="bg-blue-100 text-blue-500 text-sm font-medium px-4 py-2 rounded-full hover:bg-blue-200"
-                onClick={() => setIsModalOpen(true)}
-              >
-                + Schedule a mock Interview
-              </button>
+              {/* Notification Bell */}
+              <div className="relative">
+                <button 
+                  onClick={() => setIsNotifOpen(!isNotifOpen)} 
+                  className="bg-blue-100 text-blue-500 text-sm font-medium px-4 py-2 rounded-full hover:bg-blue-200 flex items-center space-x-2"
+                >
+                  <FaBell className="w-4 h-4" />
+                  <span>Notifications</span>
+                  {hasUnreadNotifications && (
+                    <span className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {notifications.length}
+                    </span>
+                  )}
+                </button>
+
+                {isNotifOpen && (
+                  <div className="absolute right-0 mt-3 w-80 bg-white rounded-lg shadow-lg border z-50">
+                    <div className="bg-red-500 text-white px-4 py-2 rounded-t-lg flex justify-between items-center">
+                      <span className="font-semibold">Notifications</span>
+                    </div>
+                    <ul className="max-h-96 overflow-y-auto">
+                      {notifications.map((notif) => (
+                        <li key={notif.id} className="flex items-start gap-3 p-3 hover:bg-gray-100">
+                          <img
+                            src={notif.avatar}
+                            alt={notif.name}
+                            className="w-10 h-10 rounded-full"
+                          />
+                          <div className="text-sm text-gray-700">
+                            <span className="font-semibold">{notif.name}</span> {notif.message}
+                            <div className="text-xs text-gray-500">{notif.time}</div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="text-center text-teal-500 text-sm font-medium py-2 border-t hover:underline cursor-pointer">
+                      See all recent activity
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Avatar + Dropdown */}
               <div className="relative">
                 <img
-                  src={profile}
+                  src={user?.picture || profile}
                   alt="User Avatar"
                   className="h-8 w-8 rounded-full cursor-pointer"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -128,79 +155,24 @@ const Navbar = () => {
             </>
           )}
         </div>
-
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="lg:hidden mt-4">
-            <Link to="/overview" className="block px-4 py-2 text-gray-700 text-sm hover:bg-gray-200">Overview</Link>
-            <div className="flex flex-col items-start px-4 py-2 cursor-not-allowed">
-              <span className="text-gray-400 text-sm">Application Status</span>
-              <span className="text-xs text-orange-500">(Coming Soon)</span>
-            </div>
-            <div className="flex flex-col items-start px-4 py-2 cursor-not-allowed">
-              <span className="text-gray-400 text-sm">Interviews</span>
-              <span className="text-xs text-orange-500">(Coming Soon)</span>
-            </div>
-            <div className="flex flex-col items-start px-4 py-2 cursor-not-allowed">
-              <span className="text-gray-400 text-sm">Upskill</span>
-              <span className="text-xs text-orange-500">(Coming Soon)</span>
-            </div>
-            <div className="flex flex-col items-start px-4 py-2 cursor-not-allowed">
-              <span className="text-gray-400 text-sm">Tools</span>
-              <span className="text-xs text-orange-500">(Coming Soon)</span>
-            </div>
-            <div className="flex flex-col items-start px-4 py-2 cursor-not-allowed">
-              <span className="text-gray-400 text-sm">Blog</span>
-              <span className="text-xs text-orange-500">(Coming Soon)</span>
-            </div>
-
-            {isLoggedIn && (
-              <>
-                <button
-                  className="block bg-blue-100 text-blue-500 text-sm font-medium w-full text-left px-4 py-2 rounded-full hover:bg-blue-200 mt-2"
-                  onClick={() => setIsModalOpen(true)}
-                >
-                  + Schedule a mock Interview
-                </button>
-                <div className="relative flex items-center mt-4">
-                  <img src={profile} alt="User Avatar" className="h-8 w-8 rounded-full" />
-                  <span className="ml-2 text-gray-700 text-sm">{user?.username || "User"}</span>
-                  <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-md py-2">
-                    <Link to="/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">View Profile</Link>
-                    <button onClick={handleSignOut} className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</button>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        )}
       </div>
 
-      {/* Modal */}
+      {/* Schedule Modal */}
       <Transition appear show={isModalOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={() => setIsModalOpen(false)}>
           <Transition.Child
             as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
+            enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100"
+            leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0"
           >
             <div className="fixed inset-0 bg-black bg-opacity-25" />
           </Transition.Child>
-
           <div className="fixed inset-0 overflow-y-auto">
             <div className="flex min-h-full items-center justify-center p-4 text-center">
               <Transition.Child
                 as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
+                enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95"
               >
                 <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                   <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">

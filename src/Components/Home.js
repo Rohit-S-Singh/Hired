@@ -1,5 +1,6 @@
 import { Home } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import PricingPage from "./PricingPage.jsx";
 
 const HomePage = () => {
     const navigate = useNavigate();
@@ -9,7 +10,7 @@ const HomePage = () => {
       { icon: "🔥", text: "Getting Interview Calls", bg: "bg-purple-100", textColor: "text-purple-500", status: "coming-soon" },
       { icon: "🕒", text: "Automated Application Process", bg: "bg-blue-100", textColor: "text-blue-500", status: "live" },
       { icon: "📥", text: "Job Application Tracking", bg: "bg-green-100", textColor: "text-green-500", status: "coming-soon" },
-      { icon: "🧰", text: "Faster Referrals", bg: "bg-violet-100", textColor: "text-violet-500", status: "coming-soon" },
+      { icon: "🧰", text: "Faster Referrals", bg: "bg-violet-100", textColor: "text-violet-500", status: "live" },
       { icon: "👑", text: "Quick Job Opening Updates", bg: "bg-yellow-100", textColor: "text-yellow-500", status: "coming-soon" },
     ];
   
@@ -38,7 +39,11 @@ const HomePage = () => {
                 }`}
                 onClick={() => {
                   if (item.status === "live") {
-                    navigate("/email-sender");
+                    if (item.text === "Automated Application Process") {
+                      navigate("/email-sender");
+                    } else if (item.text === "Faster Referrals") {
+                      navigate("/jobs");
+                    }
                   }
                 }}
               >
@@ -68,6 +73,8 @@ const HomePage = () => {
             </button>
           </div>
         </section>
+        {/* Pricing Section */}
+        <PricingPage />
       </div>
     );
   };
