@@ -7,14 +7,14 @@ const JobBoard = () => {
   const [jobs, setJobs] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:8080/api/jobs')
+    axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/jobs`)
       .then((res) => setJobs(res.data))
       .catch((err) => console.error('Error fetching jobs', err));
   }, []);
 
   const handleRequestReferral = (jobId) => {
     const userId = '123'; // replace with actual logged-in user ID
-    axios.post(`http://localhost:8080/api/jobs/${jobId}/referrals`, { userId })
+    axios.post(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/jobs/${jobId}/referrals`, { userId })
       .then(() => alert('Referral requested!'))
       .catch((err) => console.error('Referral request failed', err));
   };
