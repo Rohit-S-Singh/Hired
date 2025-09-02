@@ -24,6 +24,10 @@ import LoaderOverlay from './Components/LoaderOverlay';
 import About from './Components/about';
 // import PostJobForm from './Components/PostJobForm.jsx';
 import JobBoard from './Components/JobBoard';
+import ReferralRequestPage from './Components/ReferralRequestPage';
+import RecruitersList from './Components/RecruitersList';
+import RecruiterProfile from './Components/RecruiterProfile';
+import NotificationsList from './Components/NotificationsList';
 
 const AppRoutes = () => {
   const { isLoggedIn, setIsLoggedIn } = useGlobalContext();
@@ -43,6 +47,9 @@ const AppRoutes = () => {
         <Routes>
           <Route path="/login" element={<Login setLoggedIn={setIsLoggedIn} />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/recruiters" element={<><Navbar /><RecruitersList /></>} />
+          <Route path="/recruiter/:recruiterId" element={<><Navbar /><RecruiterProfile /></>} />
+          <Route path="/notifications" element={<><Navbar /><NotificationsList /></>} />
           <Route path="*" element={<><Navbar /><HomePage /></>} />
         </Routes>
       ) : (
@@ -64,6 +71,10 @@ const AppRoutes = () => {
             <Route path="/about" element={<About />} />
             {/* <Route path="/postjob" element={<PostJobForm onJobSubmit={() => {}} />} /> */}
             <Route path="/jobs" element={<JobBoard />} />
+            <Route path="/referral/:jobId" element={<ReferralRequestPage />} />
+            <Route path="/recruiters" element={<RecruitersList />} />
+            <Route path="/recruiter/:recruiterId" element={<RecruiterProfile />} />
+            <Route path="/notifications" element={<NotificationsList />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </>

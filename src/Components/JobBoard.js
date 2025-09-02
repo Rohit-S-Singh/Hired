@@ -1,10 +1,12 @@
 // JobBoard.jsx or Dashboard.jsx
 import React, { useEffect, useState } from 'react';
 import JobList from './JobList';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const JobBoard = () => {
   const [jobs, setJobs] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/jobs`)
@@ -13,10 +15,7 @@ const JobBoard = () => {
   }, []);
 
   const handleRequestReferral = (jobId) => {
-    const userId = '123'; // replace with actual logged-in user ID
-    axios.post(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/jobs/${jobId}/referrals`, { userId })
-      .then(() => alert('Referral requested!'))
-      .catch((err) => console.error('Referral request failed', err));
+    navigate(`/referral/${jobId}`);
   };
 
   return (

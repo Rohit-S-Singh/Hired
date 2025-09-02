@@ -1,9 +1,35 @@
 import { Home } from "@mui/icons-material";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PricingPage from "./PricingPage.jsx";
+import RecruiterPromptModal from "./RecruiterPromptModal.jsx";
 
 const HomePage = () => {
     const navigate = useNavigate();
+    const [showRecruiterModal, setShowRecruiterModal] = useState(false);
+
+    useEffect(() => {
+      const handleScroll = () => {
+        const doc = document.documentElement;
+        const scrollTop = window.scrollY || doc.scrollTop;
+        const viewportHeight = window.innerHeight;
+        const fullHeight = doc.scrollHeight;
+        const scrollProgress = (scrollTop + viewportHeight) / Math.max(fullHeight, 1);
+
+        if (scrollProgress >= 0.5) {
+          setShowRecruiterModal(true);
+          window.removeEventListener("scroll", handleScroll, { passive: true });
+        }
+      };
+
+      window.addEventListener("scroll", handleScroll, { passive: true });
+      // Run once in case the page is short or already scrolled
+      handleScroll();
+
+      return () => {
+        window.removeEventListener("scroll", handleScroll, { passive: true });
+      };
+    }, []);
     
     const problems = [
       { icon: "👥", text: "Connections to Recruiters", bg: "bg-red-100", textColor: "text-red-500", status: "coming-soon" },
@@ -75,6 +101,14 @@ const HomePage = () => {
         </section>
         {/* Pricing Section */}
         <PricingPage />
+        <RecruiterPromptModal
+          open={showRecruiterModal}
+          onClose={() => setShowRecruiterModal(false)}
+          onCta={() => {
+            setShowRecruiterModal(false);
+            navigate("/recruiters");
+          }}
+        />
       </div>
     );
   };
