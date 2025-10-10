@@ -3,6 +3,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PricingPage from "./PricingPage.jsx";
 import RecruiterPromptModal from "./RecruiterPromptModal.jsx";
+import MentorCarousel from "./MentorCarousel.js";
+import HelpSection from "./Faqs.js";
+import FAQSection from "./Faq.js";
 
 const HomePage = () => {
     const navigate = useNavigate();
@@ -55,7 +58,7 @@ const HomePage = () => {
   
         {/* Problem Cards Section */}
         <section className="py-16 bg-white text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-10">What Problems Does Hiredd Solve?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-10">Our Tools</h2>
           <div className="flex flex-wrap justify-center gap-6 px-4">
             {problems.map((item, index) => (
               <div
@@ -100,6 +103,9 @@ const HomePage = () => {
           </div>
         </section>
         {/* Pricing Section */}
+        <MentorCarousel></MentorCarousel>
+        <HelpSection></HelpSection>
+        <FAQSection></FAQSection>
         <PricingPage />
         <RecruiterPromptModal
           open={showRecruiterModal}
