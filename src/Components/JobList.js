@@ -1,6 +1,8 @@
 import React from 'react';
 
 const JobList = ({ jobs, onRequestReferral }) => {
+
+  console.log(jobs);
   return (
     <div className="max-w-4xl mx-auto mt-8 space-y-6">
       <h2 className="text-2xl font-bold mb-4">Available Jobs</h2>

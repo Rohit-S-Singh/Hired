@@ -20,7 +20,7 @@ export default function MentorCarousel() {
   // Fetch mentors
   const fetchMentors = useCallback(async () => {
     try {
-      const res = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/get-all-mentors}`, {
+      const res = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/get-all-mentors`, {
         headers: { "Content-Type": "application/json" },
       });
       setMentors(res.data || []);
