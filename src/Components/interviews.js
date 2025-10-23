@@ -1,89 +1,404 @@
-import React, { useState } from "react";
-import { FaGoogle, FaMicrosoft, FaVideo } from "react-icons/fa";
-import { FiPlus } from "react-icons/fi";
+import React, { useState, useEffect } from "react";
+import { FaPlus, FaCalendarAlt, FaClock, FaUser, FaVideo, FaCheckCircle, FaTimesCircle, FaExclamationCircle, FaExclamationTriangle, FaRedo } from "react-icons/fa";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
-
-import { useNavigate } from "react-router-dom";
+import { useGlobalContext } from "./GlobalContext";
 
 const Interview = () => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [interviews, setInterviews] = useState([]);
+  const [mentors, setMentors] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [fetchError, setFetchError] = useState(null);
+  const { user } = useGlobalContext();
 
-  const navigate = useNavigate();
+  // Form state
+  const [formData, setFormData] = useState({
+    mentor: '',
+    interviewType: '',
+    scheduledDate: '',
+    duration: 60,
+    timezone: 'UTC',
+    title: '',
+    description: '',
+    candidateNotes: ''
+  });
 
+  // Fetch interviews
+  const fetchInterviews = async () => {
+    try {
+      setLoading(true);
+      setFetchError(null);
+      const token = localStorage.getItem('jwtToken');
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/interviews`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-  function closeModal() {
-    setIsOpen(false);
-  }
+      if (response.ok) {
+        const result = await response.json();
+        setInterviews(result.data || []);
+        setFetchError(null);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || `Failed to fetch interviews (${response.status})`;
+        setFetchError(errorMessage);
+        setInterviews([]);
+        console.error('Failed to fetch interviews:', errorMessage);
+      }
+    } catch (error) {
+      const errorMessage = error.message || 'Network error occurred while fetching interviews';
+      setFetchError(errorMessage);
+      setInterviews([]);
+      console.error('Error fetching interviews:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  function startInterview(){
-    navigate("/new-interview");
+  // Fetch mentors
+  const fetchMentors = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/get-all-mentors`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-  }
+      if (response.ok) {
+        const result = await response.json();
+        setMentors(result || []);
+      } else {
+        console.error('Failed to fetch mentors');
+        setMentors([]);
+      }
+    } catch (error) {
+      console.error('Error fetching mentors:', error);
+      setMentors([]);
+    }
+  };
 
-  function openModal() {
-    setIsOpen(true);
+  useEffect(() => {
+    fetchInterviews();
+    fetchMentors();
+  }, []);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setSubmitting(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/interviews`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Interview scheduled successfully:', result);
+        setIsModalOpen(false);
+        setFormData({
+          mentor: '',
+          interviewType: '',
+          scheduledDate: '',
+          duration: 60,
+          timezone: 'UTC',
+          title: '',
+          description: '',
+          candidateNotes: ''
+        });
+        fetchInterviews(); // Refresh the list
+      } else {
+        const error = await response.json();
+        console.error('Failed to schedule interview:', error);
+        alert('Failed to schedule interview. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error scheduling interview:', error);
+      alert('Error scheduling interview. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'completed':
+        return <FaCheckCircle className="text-green-500" />;
+      case 'rejected':
+      case 'cancelled':
+        return <FaTimesCircle className="text-red-500" />;
+      case 'pending':
+        return <FaExclamationCircle className="text-yellow-500" />;
+      case 'accepted':
+        return <FaCheckCircle className="text-blue-500" />;
+      default:
+        return <FaExclamationCircle className="text-gray-500" />;
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'rejected':
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'accepted':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const interviewTypes = [
+    'technical',
+    'behavioral', 
+    'mock',
+    'resume_review',
+    'career_guidance',
+    'other'
+  ];
+
+  if (loading) {
+    return (
+      <div className="p-6 bg-gray-100 min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Annette Black</h1>
-          <p className="text-gray-600">annette@gmail.com</p>
+          <h1 className="text-3xl font-bold text-gray-900">Interviews</h1>
+          <p className="text-gray-600 mt-1">Manage your interview sessions</p>
         </div>
         <button
-          className="bg-blue-600 text-white p-2 rounded-md flex items-center"
-          onClick={openModal}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700 transition-colors"
+          onClick={() => setIsModalOpen(true)}
         >
-          <FiPlus className="mr-2" /> Schedule New Interview
+          <FaPlus className="w-4 h-4" />
+          <span>Schedule an Interview</span>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-green-100 p-4 rounded-lg shadow-md">
-          <h2 className="text-lg font-bold">4.6</h2>
-          <p className="text-gray-700">Current score</p>
-          <p className="text-sm text-gray-500 mt-2">Average score is 3.9</p>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-lg shadow-sm">
+          <div className="flex items-center">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <FaCalendarAlt className="w-6 h-6 text-blue-600" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-500">Total Interviews</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {fetchError ? '--' : interviews.length}
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <h2 className="text-lg font-bold mb-2">Top Evaluated Skills</h2>
-          <div className="flex flex-wrap">
-            <span className="bg-gray-200 p-2 rounded-full mr-2 mb-2">Product development 4.0</span>
-            <span className="bg-gray-200 p-2 rounded-full mr-2 mb-2">Management 4.2</span>
-            <span className="bg-gray-200 p-2 rounded-full mr-2 mb-2">Web tools 4.9</span>
-            {/* Add more skills as needed */}
+        <div className="bg-white p-4 rounded-lg shadow-sm">
+          <div className="flex items-center">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <FaCheckCircle className="w-6 h-6 text-green-600" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-500">Completed</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {fetchError ? '--' : interviews.filter(i => i.status === 'completed').length}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow-sm">
+          <div className="flex items-center">
+            <div className="p-2 bg-yellow-100 rounded-lg">
+              <FaClock className="w-6 h-6 text-yellow-600" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-500">Pending</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {fetchError ? '--' : interviews.filter(i => i.status === 'pending').length}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow-sm">
+          <div className="flex items-center">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <FaUser className="w-6 h-6 text-blue-600" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-500">Accepted</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {fetchError ? '--' : interviews.filter(i => i.status === 'accepted').length}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="mt-6">
-        <h2 className="text-lg font-bold mb-4">Interviews</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <h3 className="text-md font-bold">Welcome Interview</h3>
-            <p className="text-gray-700">Wade Warren</p>
-            <p className="text-sm text-gray-500">23 December, 2021</p>
-            <p className="text-green-600 mt-2 font-bold">4.5</p>
-            <button className="bg-gray-200 p-2 rounded-md mt-2">View Full Results</button>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <h3 className="text-md font-bold">Technical Assessment</h3>
-            <p className="text-gray-700">Joaquin Doyen</p>
-            <p className="text-sm text-gray-500">28 December, 2021</p>
-            <p className="text-green-600 mt-2 font-bold">4.7</p>
-            <button className="bg-gray-200 p-2 rounded-md mt-2">View Full Results</button>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <h3 className="text-md font-bold">Social Skill Assessment</h3>
-            <p className="text-gray-700">60 minutes, 8 questions</p>
-            <button className="bg-blue-600 text-white p-2 rounded-md mt-2" onClick={startInterview}>Start Interview</button>
-          </div>
+      {/* Interviews Table */}
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">Interview Sessions</h2>
         </div>
+        
+        {fetchError ? (
+          <div className="text-center py-12">
+            <FaExclamationTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Failed to load interviews</h3>
+            <p className="text-gray-500 mb-4">{fetchError}</p>
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center mx-auto"
+              onClick={fetchInterviews}
+            >
+              <FaRedo className="w-4 h-4 mr-2" />
+              Try Again
+            </button>
+          </div>
+        ) : interviews.length === 0 ? (
+          <div className="text-center py-12">
+            <FaCalendarAlt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No interviews scheduled</h3>
+            <p className="text-gray-500 mb-4">Get started by scheduling your first interview</p>
+            <button
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              onClick={() => setIsModalOpen(true)}
+            >
+              Schedule Interview
+            </button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Interview
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Mentor
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Scheduled Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Duration
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {interviews.map((interview) => (
+                  <tr key={interview._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {interview.title}
+                        </div>
+                        {interview.description && (
+                          <div className="text-sm text-gray-500 truncate max-w-xs">
+                            {interview.description}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-8 w-8">
+                          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                            <FaUser className="w-4 h-4 text-blue-600" />
+                          </div>
+                        </div>
+                        <div className="ml-3">
+                          <div className="text-sm font-medium text-gray-900">
+                            {interview.mentor?.name || 'Mentor'}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                        {interview.interviewType?.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {formatDate(interview.scheduledDate)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {interview.duration} min
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(interview.status)}`}>
+                        {getStatusIcon(interview.status)}
+                        <span className="ml-1 capitalize">{interview.status}</span>
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      {interview.meetingLink && (
+                        <a
+                          href={interview.meetingLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-900 flex items-center"
+                        >
+                          <FaVideo className="w-4 h-4 mr-1" />
+                          Join
+                        </a>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
- 
-      <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={closeModal}>
+
+      {/* Schedule Interview Modal */}
+      <Transition appear show={isModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={() => setIsModalOpen(false)}>
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"
@@ -114,114 +429,146 @@ const Interview = () => {
                   >
                     Schedule New Interview
                   </Dialog.Title>
-                  <div className="mt-2">
-                    <form className="space-y-4">
+                  <div className="mt-4">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
-                          Choose a person
+                          Choose Mentor
                         </label>
-                        <input
-                          type="text"
-                          className="mt-1 p-2 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                        />
+                        <select
+                          name="mentor"
+                          value={formData.mentor}
+                          onChange={handleInputChange}
+                          required
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Select a mentor</option>
+                          {mentors.map((mentor) => (
+                            <option key={mentor._id} value={mentor._id}>
+                              {mentor.name} - {mentor.profile?.expertise?.join(', ')}
+                            </option>
+                          ))}
+                        </select>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
                           Interview Type
                         </label>
-                        <select className="mt-1 p-2 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                          <option>Paid</option>
-                          <option>Unpaid</option>
+                        <select
+                          name="interviewType"
+                          value={formData.interviewType}
+                          onChange={handleInputChange}
+                          required
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="">Select interview type</option>
+                          {interviewTypes.map((type) => (
+                            <option key={type} value={type}>
+                              {type.replace('_', ' ').toUpperCase()}
+                            </option>
+                          ))}
                         </select>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
-                          Select Time & Duration
-                        </label>
-                        <input
-                          type="datetime-local"
-                          className="mt-1 p-2 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Select Channel
-                        </label>
-                        <div className="mt-2 flex items-center space-x-4">
-                          <button className="flex items-center bg-gray-100 p-2 rounded-lg">
-                            <FaGoogle className="mr-2 text-green-500" /> Google Meet
-                          </button>
-                          <button className="flex items-center bg-gray-100 p-2 rounded-lg">
-                            <FaMicrosoft className="mr-2 text-blue-500" /> Teams
-                          </button>
-                          <button className="flex items-center bg-gray-100 p-2 rounded-lg">
-                            <FaVideo className="mr-2 text-red-500" /> Zoom
-                          </button>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Your Name
+                          Title
                         </label>
                         <input
                           type="text"
-                          className="mt-1 p-2 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                          name="title"
+                          value={formData.title}
+                          onChange={handleInputChange}
+                          required
+                          placeholder="e.g., Technical Interview - React"
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
-                          Your Email
+                          Scheduled Date & Time
                         </label>
                         <input
-                          type="email"
-                          className="mt-1 p-2 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                          type="datetime-local"
+                          name="scheduledDate"
+                          value={formData.scheduledDate}
+                          onChange={handleInputChange}
+                          required
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700">
-                          Upload Attachments
+                          Duration (minutes)
                         </label>
-                        <input
-                          type="file"
-                          className="mt-1 block w-full text-sm text-gray-500
-                          file:mr-4 file:py-2 file:px-4
-                          file:rounded-md file:border-0
-                          file:text-sm file:font-semibold
-                          file:bg-blue-50 file:text-blue-700
-                          hover:file:bg-blue-100"
+                        <select
+                          name="duration"
+                          value={formData.duration}
+                          onChange={handleInputChange}
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value={30}>30 minutes</option>
+                          <option value={60}>60 minutes</option>
+                          <option value={90}>90 minutes</option>
+                          <option value={120}>120 minutes</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Description (Optional)
+                        </label>
+                        <textarea
+                          name="description"
+                          value={formData.description}
+                          onChange={handleInputChange}
+                          rows={3}
+                          placeholder="Brief description of what you'd like to discuss..."
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Your Notes (Optional)
+                        </label>
+                        <textarea
+                          name="candidateNotes"
+                          value={formData.candidateNotes}
+                          onChange={handleInputChange}
+                          rows={2}
+                          placeholder="Any specific questions or topics you'd like to cover..."
+                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+
+                      <div className="flex justify-end space-x-3 pt-4">
+                        <button
+                          type="button"
+                          onClick={() => setIsModalOpen(false)}
+                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={submitting}
+                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {submitting ? 'Scheduling...' : 'Schedule Interview'}
+                        </button>
                       </div>
                     </form>
-                  </div>
-
-                  <div className="mt-4">
-                    <button
-                      type="button"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                      onClick={closeModal}
-                    >
-                      Schedule Interview
-                    </button>
-                    <button
-                      type="button"
-                      className="ml-2 inline-flex justify-center rounded-md border border-transparent bg-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2"
-                      onClick={closeModal}
-                    >
-                      Cancel
-                    </button>
                   </div>
                 </Dialog.Panel>
               </Transition.Child>
             </div>
           </div>
         </Dialog>
-      </Transition> 
+      </Transition>
     </div>
   );
 };

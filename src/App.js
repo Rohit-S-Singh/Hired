@@ -47,6 +47,7 @@ const AppRoutes = () => {
         <Routes>
           <Route path="/login" element={<Login setLoggedIn={setIsLoggedIn} />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/interviews" element={<Interview />} />
           <Route path="/recruiters" element={<><Navbar /><RecruitersList /></>} />
           <Route path="/recruiter/:recruiterId" element={<><Navbar /><RecruiterProfile /></>} />
           <Route path="/notifications" element={<><Navbar /><NotificationsList /></>} />
