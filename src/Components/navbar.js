@@ -149,6 +149,7 @@ const Navbar = () => {
         <div className={`flex space-x-6 lg:flex ${isMenuOpen ? "block" : "hidden"} lg:block`}>
           <Link to="/home" className="text-gray-700 text-sm hover:text-blue-500">Home</Link>
           <Link to="/overview" className="text-gray-700 text-sm hover:text-blue-500">Overview</Link>
+          {isLoggedIn && <Link to="/interviews" className="text-gray-700 text-sm hover:text-blue-500">Interviews</Link>}
           {isLoggedIn && <Link to="/postjob" className="text-gray-700 text-sm hover:text-blue-500">Add Job</Link>}
           {isLoggedIn && <Link to="/jobs" className="text-gray-700 text-sm hover:text-blue-500">Jobs</Link>}
         </div>
