@@ -56,11 +56,8 @@ useEffect(() => {
       console.log("No token found, skipping auto login");
     }
   };
-
   autoLogin();
 }, [navigate]);
-
-
 
     useEffect(() => {
       const handleScroll = () => {
