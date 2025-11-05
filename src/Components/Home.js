@@ -33,20 +33,13 @@ console.log("Backend URL:", process.env.REACT_APP_BACKEND_BASE_URL);
           },
         });
 
-        
-
-
         const data = await res.json();
-   console.log(data);
-   
-
+        console.log(data);
 
         if (res.status === 200 || data.success) {
           console.log("✅ Token valid, user logged in automatically");
                   setIsLoggedIn(true);
 
-
-                   
              setUser({
           username: data.user.name,
           email: data.user.email,
