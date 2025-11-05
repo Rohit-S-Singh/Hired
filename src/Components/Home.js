@@ -14,18 +14,16 @@ const HomePage = () => {
     
     const [showRecruiterModal, setShowRecruiterModal] = useState(false);
 
-
-  useEffect(() => {
+useEffect(() => {
   const autoLogin = async () => {
-    const token = localStorage.getItem("jwtToken"); // consistent key
-  console.log("111111");
-  
-console.log("Backend URL:", process.env.REACT_APP_BACKEND_BASE_URL);
+    const token = localStorage.getItem("jwtToken"); // Consistent key
+    console.log("Checking if token exists in localStorage...");
 
     if (token) {
-      try {
+      console.log("Token found, verifying...");
 
-    const res = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/verifyToken`, {
+      try {
+        const res = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/verifyToken`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -33,39 +31,34 @@ console.log("Backend URL:", process.env.REACT_APP_BACKEND_BASE_URL);
           },
         });
 
-        
-
-
         const data = await res.json();
-   console.log(data);
-   
-
+        console.log("Verification response:", data);
 
         if (res.status === 200 || data.success) {
           console.log("✅ Token valid, user logged in automatically");
-                  setIsLoggedIn(true);
-
-
-                   
-             setUser({
-          username: data.user.name,
-          email: data.user.email,
-          picture: data.user.avatar // <-- set avatar as picture
-        });
+          
+          setIsLoggedIn(true);
+          setUser({
+            username: data.user.name,
+            email: data.user.email,
+            picture: data.user.avatar, // <-- Set avatar as picture
+          });
+          
           navigate("/overview");
         } else {
           console.warn("⚠️ Invalid or expired token");
-          localStorage.removeItem("jwtToken"); // fixed key
+          localStorage.removeItem("jwtToken"); // Fixed key
         }
       } catch (error) {
         console.error("❌ Error verifying token:", error);
       }
+    } else {
+      console.log("No token found, skipping auto login");
     }
   };
 
   autoLogin();
 }, [navigate]);
-
 
 
 
