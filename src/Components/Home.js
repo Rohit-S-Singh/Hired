@@ -1,4 +1,3 @@
-import { Home } from "@mui/icons-material";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PricingPage from "./PricingPage.jsx";
@@ -6,10 +5,62 @@ import RecruiterPromptModal from "./RecruiterPromptModal.jsx";
 import MentorCarousel from "./MentorCarousel.js";
 import HelpSection from "./Faqs.js";
 import FAQSection from "./Faq.js";
+import { useGlobalContext } from "./GlobalContext";
+
 
 const HomePage = () => {
     const navigate = useNavigate();
+      const { setIsLoggedIn, setUser } = useGlobalContext();
+    
     const [showRecruiterModal, setShowRecruiterModal] = useState(false);
+
+
+  useEffect(() => {
+  const autoLogin = async () => {
+    const token = localStorage.getItem("jwtToken"); // consistent key
+  console.log("111111");
+  
+console.log("Backend URL:", process.env.REACT_APP_BACKEND_BASE_URL);
+
+    if (token) {
+      try {
+
+    const res = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/verifyToken`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+        console.log(data);
+
+        if (res.status === 200 || data.success) {
+          console.log("✅ Token valid, user logged in automatically");
+                  setIsLoggedIn(true);
+
+             setUser({
+          username: data.user.name,
+          email: data.user.email,
+          picture: data.user.avatar // <-- set avatar as picture
+        });
+          navigate("/overview");
+        } else {
+          console.warn("⚠️ Invalid or expired token");
+          localStorage.removeItem("jwtToken"); // fixed key
+        }
+      } catch (error) {
+        console.error("❌ Error verifying token:", error);
+      }
+    }
+  };
+
+  autoLogin();
+}, [navigate]);
+
+
+
 
     useEffect(() => {
       const handleScroll = () => {
