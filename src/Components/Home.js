@@ -16,6 +16,8 @@ useEffect(() => {
   const autoLogin = async () => {
     const token = localStorage.getItem("jwtToken"); // Consistent key
     console.log("Checking if token exists in localStorage...");
+    console.log("hi");
+    
     if (token) {
       console.log("Token found, verifying...");
       try {

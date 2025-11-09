@@ -32,7 +32,7 @@ const Navbar = () => {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzNiZDdhM2NlZDM1YWQxMmViMzIxNSIsImVtYWlsIjoicm9oaXRzaGVrcnNpbmdoQGdtYWlsLmNvbSIsImlhdCI6MTc1NjY2NzAwOSwiZXhwIjoxNzU2NzUzNDA5fQ.IHegQJKrmB9Mu44NyJBqoxPxDmF0HFKnOkSGd5TgcOw';
+      const token = localStorage.getItem('jwtToken') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzNiZDdhM2NlZDM1YWQxMmViMzIxNSIsImVtYWlsIjoicm9oaXRzaGVrcnNpbmdoQGdtYWlsLmNvbSIsImlhdCI6MTc1NjY2NzAwOSwiZXhwIjoxNzU2NzUzNDA5fQ.IHegQJKrmB9Mu44NyJBqoxPxDmF0HFKnOkSGd5TgcOw';
       
       const response = await fetch('https://system-backend-hprl.onrender.com/api/notifications', {
         method: 'GET',

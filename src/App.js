@@ -18,7 +18,7 @@ import EmailSender from './Components/Email-Sender';
 import EmailSetup from './Components/EmailSetup';
 import EmailEditorPage from './Components/EmailEditorPage';
 import { useGlobalContext } from './Components/GlobalContext';
-
+import AdminDashboard from "./Components/AdminDashboard.jsx";
 import { LoaderProvider, useLoader } from './Components/LoaderContext';
 import LoaderOverlay from './Components/LoaderOverlay';
 import About from './Components/about';
@@ -45,6 +45,8 @@ const AppRoutes = () => {
       <LoaderOverlay />
       {!isLoggedIn ? (
         <Routes>
+          <Route path="/AdminDashboard" element={<AdminDashboard />} />
+
           <Route path="/login" element={<Login setLoggedIn={setIsLoggedIn} />} />
           <Route path="/register" element={<Register />} />
           <Route path="/interviews" element={<Interview />} />
