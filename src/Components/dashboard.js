@@ -5,9 +5,10 @@ import {
 } from "recharts";
 import { FaEnvelope, FaBriefcase, FaUserCheck, FaChartLine } from "react-icons/fa";
 import axios from 'axios';
-
+import AdminDashboard from "./AdminDashboard.jsx";
 import JobCategories from './exploreJobs';
 import { useGlobalContext } from './GlobalContext'; // ⬅️ import context
+
 
 const formatDate = () => {
   const today = new Date();

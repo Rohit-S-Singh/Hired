@@ -7,60 +7,51 @@ import HelpSection from "./Faqs.js";
 import FAQSection from "./Faq.js";
 import { useGlobalContext } from "./GlobalContext";
 
-
 const HomePage = () => {
     const navigate = useNavigate();
       const { setIsLoggedIn, setUser } = useGlobalContext();
-    
     const [showRecruiterModal, setShowRecruiterModal] = useState(false);
 
-
-  useEffect(() => {
+useEffect(() => {
   const autoLogin = async () => {
-    const token = localStorage.getItem("jwtToken"); // consistent key
-  console.log("111111");
-  
-console.log("Backend URL:", process.env.REACT_APP_BACKEND_BASE_URL);
-
+    const token = localStorage.getItem("jwtToken"); // Consistent key
+    console.log("Checking if token exists in localStorage...");
+    console.log("hi");
+    
     if (token) {
+      console.log("Token found, verifying...");
       try {
-
-    const res = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/verifyToken`, {
+        const res = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/verifyToken`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         });
-
         const data = await res.json();
-        console.log(data);
-
+        console.log("Verification response:", data);
         if (res.status === 200 || data.success) {
           console.log("✅ Token valid, user logged in automatically");
-                  setIsLoggedIn(true);
-
-             setUser({
-          username: data.user.name,
-          email: data.user.email,
-          picture: data.user.avatar // <-- set avatar as picture
-        });
+          setIsLoggedIn(true);
+          setUser({
+            username: data.user.name,
+            email: data.user.email,
+            picture: data.user.avatar, // <-- Set avatar as picture
+          });   
           navigate("/overview");
         } else {
           console.warn("⚠️ Invalid or expired token");
-          localStorage.removeItem("jwtToken"); // fixed key
+          localStorage.removeItem("jwtToken"); // Fixed key
         }
       } catch (error) {
         console.error("❌ Error verifying token:", error);
       }
+    } else {
+      console.log("No token found, skipping auto login");
     }
   };
-
   autoLogin();
 }, [navigate]);
-
-
-
 
     useEffect(() => {
       const handleScroll = () => {
@@ -75,16 +66,13 @@ console.log("Backend URL:", process.env.REACT_APP_BACKEND_BASE_URL);
           window.removeEventListener("scroll", handleScroll, { passive: true });
         }
       };
-
       window.addEventListener("scroll", handleScroll, { passive: true });
       // Run once in case the page is short or already scrolled
       handleScroll();
-
       return () => {
         window.removeEventListener("scroll", handleScroll, { passive: true });
       };
     }, []);
-    
     const problems = [
       { icon: "👥", text: "Connections to Recruiters", bg: "bg-red-100", textColor: "text-red-500", status: "coming-soon" },
       { icon: "🔥", text: "Getting Interview Calls", bg: "bg-purple-100", textColor: "text-purple-500", status: "coming-soon" },
@@ -93,7 +81,6 @@ console.log("Backend URL:", process.env.REACT_APP_BACKEND_BASE_URL);
       { icon: "🧰", text: "Faster Referrals", bg: "bg-violet-100", textColor: "text-violet-500", status: "live" },
       { icon: "👑", text: "Quick Job Opening Updates", bg: "bg-yellow-100", textColor: "text-yellow-500", status: "coming-soon" },
     ];
-  
     return (
       <div className="bg-white text-black">
         {/* Hero Section */}
@@ -169,6 +156,5 @@ console.log("Backend URL:", process.env.REACT_APP_BACKEND_BASE_URL);
       </div>
     );
   };
-  
   export default HomePage;
   
