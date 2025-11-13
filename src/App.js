@@ -43,6 +43,9 @@ const AppRoutes = () => {
   return (
     <div className="App">
       <LoaderOverlay />
+      <Routes>
+      <Route path="/AdminDashboard" element={<AdminDashboard />} />
+      </Routes>
       {!isLoggedIn ? (
         <Routes>
           <Route path="/AdminDashboard" element={<AdminDashboard />} />

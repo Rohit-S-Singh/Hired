@@ -8,6 +8,7 @@ import axios from 'axios';
 import AdminDashboard from "./AdminDashboard.jsx";
 import JobCategories from './exploreJobs';
 import { useGlobalContext } from './GlobalContext'; // ⬅️ import context
+import FeatureHighlights from './FeatureHighlights.js';
 
 
 const formatDate = () => {
@@ -146,6 +147,8 @@ const Dashboard = () => {
           </ResponsiveContainer>
         </div>
       </div>
+
+      <FeatureHighlights></FeatureHighlights>
 
       <JobCategories />
     </div>
