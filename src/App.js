@@ -44,11 +44,12 @@ const AppRoutes = () => {
     <div className="App">
       <LoaderOverlay />
       <Routes>
-      <Route path="/AdminDashboard" element={<AdminDashboard />} />
+   
       </Routes>
       {!isLoggedIn ? (
         <Routes>
-          <Route path="/AdminDashboard" element={<AdminDashboard />} />
+
+ <Route path="/AdminDashboard" element={<AdminDashboard />} />
 
           <Route path="/login" element={<Login setLoggedIn={setIsLoggedIn} />} />
           <Route path="/register" element={<Register />} />

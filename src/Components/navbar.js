@@ -152,6 +152,7 @@ const Navbar = () => {
           {isLoggedIn && <Link to="/interviews" className="text-gray-700 text-sm hover:text-blue-500">Interviews</Link>}
           {isLoggedIn && <Link to="/postjob" className="text-gray-700 text-sm hover:text-blue-500">Add Job</Link>}
           {isLoggedIn && <Link to="/jobs" className="text-gray-700 text-sm hover:text-blue-500">Jobs</Link>}
+          {isLoggedIn && <Link to="/AdminDashboard" className="text-gray-700 text-sm hover:text-blue-500">Admin</Link>}
         </div>
 
         {/* Right Section */}

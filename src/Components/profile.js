@@ -70,6 +70,49 @@ const Profile = () => {
     verifyToken();
   }, [navigate]);
 
+
+
+  // Fetch user details & update mentor/recruiter UI state
+useEffect(() => {
+  const fetchUserDetails = async () => {
+    if (!user?.email) return;
+
+    try {
+      const res = await axios.get(
+        `${REACT_APP_BACKEND_BASE_URL}/api/get-user-details/${encodeURIComponent(user.email)}`
+      );
+
+      if (res.data.success) {
+        const u = res.data.user;
+
+        // ----------- MENTOR STATE -----------
+        if (u.mentorStatus === "Pending") {
+          setMentorState("pending");
+        } else if (u.mentorStatus === "You Are A Mentor") {
+          setMentorState("approved");
+        } else {
+          setMentorState("not");
+        }
+
+        // ----------- RECRUITER STATE -----------
+        if (u.recruiterStatus === "Pending") {
+          setRecruiterState("pending");
+        } else if (u.recruiterStatus === "You Are A Recruiter") {
+          setRecruiterState("approved");
+        } else {
+          setRecruiterState("not");
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching user details ndfnmmd:", err);
+    }
+  };
+
+  fetchUserDetails();
+}, [user?.email]);
+
+
+
   // Resume upload
   const triggerResumeInput = () => inputResumeRef.current?.click();
   const handleResumeChange = async (e) => {
@@ -108,7 +151,85 @@ const Profile = () => {
     </p>
   );
 
+
+
+
   // -------------------- UI Boxes --------------------
+const handleMentorRequest = async () => {
+  const token = getToken();
+  if (!token) {
+    toast.error("Please login first!");
+    return;
+  }
+
+  try {
+    setMentorLoading(true);
+
+    const res = await axios.post(
+      `${REACT_APP_BACKEND_BASE_URL}/api/mentors/request-mentor/${encodeURIComponent(user?.email)}`
+,
+      mentorData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (res.data.success) {
+      toast.success("Mentor request submitted!");
+      setMentorState("pending"); // show the pending UI box
+      setShowMentorModal(false); // close modal
+    } else {
+      toast.error(res.data.message || "Request failed.");
+    }
+  } catch (err) {
+    console.error("Mentor request error:", err);
+    toast.error("Something went wrong.");
+  } finally {
+    setMentorLoading(false);
+  }
+};
+const handleRecruiterRequest = async () => {
+  const token = getToken();
+  if (!token) {
+    toast.error("Please login first!");
+    return;
+  }
+
+  try {
+    setIsBecomingRecruiter(true);
+
+    const res = await axios.post(
+      `${REACT_APP_BACKEND_BASE_URL}/api/recruiters/request-recruiter/${encodeURIComponent(
+        user?.email
+      )}`,
+      recruiterForm,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (res.data.success) {
+      toast.success("Recruiter request submitted!");
+      setRecruiterState("pending"); // show pending box
+      setShowRecruiterModal(false); // close modal
+    } else {
+      toast.error(res.data.message || "Request failed.");
+    }
+  } catch (err) {
+    console.error("Recruiter request error:", err);
+    toast.error("Something went wrong.");
+  } finally {
+    setIsBecomingRecruiter(false);
+  }
+};
+
+
+
+
   const BecomeMentorBox = () => (
     <div className="mb-6 p-6 bg-purple-50 border border-purple-200 rounded-lg">
       <h3 className="text-lg font-semibold mb-2">Become a Mentor</h3>
@@ -116,7 +237,7 @@ const Profile = () => {
         Share your knowledge with others and guide their careers.
       </p>
       <button
-        onClick={() => setShowMentorModal(true)}
+        onClick={() => handleMentorRequest()}
         className="bg-purple-600 text-white px-5 py-2 rounded-md hover:bg-purple-700 transition"
       >
         Become a Mentor
@@ -153,7 +274,7 @@ const Profile = () => {
         Post jobs and manage candidates easily.
       </p>
       <button
-        onClick={() => setShowRecruiterModal(true)}
+        onClick={() => handleRecruiterRequest()}
         disabled={isBecomingRecruiter}
         className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition"
       >

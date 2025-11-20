@@ -28,13 +28,46 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("requests");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
+  // =====================
+  // Fetch pending requests
+  // =====================
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get("/admin/requests");
-      setRequests(data);
-    } catch {
-      toast.error("⚠️ Failed to fetch requests");
+      const { data } = await axios.get(
+        `${process.env.REACT_APP_BACKEND_BASE_URL}/api/pending-requests`
+      );
+
+      if (data.success) {
+        const formattedRequests = [];
+
+        data.users.forEach((user) => {
+          // If mentor request is pending
+          if (user.mentorStatus === "Pending") {
+            formattedRequests.push({
+              _id: `${user._id}-mentor`, // unique per role
+              userId: user,
+              requestedRole: "mentor",
+            });
+          }
+
+          // If recruiter request is pending
+          if (user.recruiterStatus === "Pending") {
+            formattedRequests.push({
+              _id: `${user._id}-recruiter`, // unique per role
+              userId: user,
+              requestedRole: "recruiter",
+            });
+          }
+        });
+
+        setRequests(formattedRequests);
+      } else {
+        toast.error("Failed to fetch pending requests");
+      }
+    } catch (err) {
+      console.error("Error fetching pending requests:", err);
+      toast.error("Failed to fetch pending requests");
     } finally {
       setLoading(false);
     }
@@ -44,35 +77,60 @@ const AdminDashboard = () => {
     fetchRequests();
   }, []);
 
+  // =====================
+  // Handle accept/decline
+  // =====================
   const handleAction = async (id, action) => {
-    const actionText = action === "accept" ? "Accepting" : "Declining";
-    setProcessingId(id);
-
     try {
-      toast.loading(`${actionText} request...`);
-      await axios.post(`/admin/requests/${id}/${action}`);
+      setProcessingId(id);
+
+      const request = requests.find((req) => req._id === id);
+      if (!request) return;
+
+      const role = request.requestedRole;
+
+      toast.loading(
+        `${action === "accept" ? "Accepting" : "Declining"} request...`
+      );
+
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_BASE_URL}/api/requests/${request.userId._id}/${role}/${action}`
+      );
+
       toast.dismiss();
       toast.success(`✅ Request ${action}ed successfully!`);
-      fetchRequests();
-    } catch {
+
+      // Remove only the processed row
+      setRequests((prev) => prev.filter((req) => req._id !== id));
+    } catch (err) {
       toast.dismiss();
-      toast.error(`❌ Error ${action}ing request`);
+      console.error("Request action error:", err);
+      toast.error(`❌ Failed to ${action} request`);
     } finally {
       setProcessingId(null);
     }
   };
 
+  // =====================
+  // Filter & search
+  // =====================
   const filteredRequests = useMemo(() => {
     return requests.filter((req) => {
       const matchesFilter =
         filter === "all" ? true : req.requestedRole === filter;
       const matchesSearch =
-        req.userId.name.toLowerCase().includes(search.toLowerCase()) ||
-        req.userId.email.toLowerCase().includes(search.toLowerCase());
+        (req.userId?.name?.toLowerCase().includes(search.toLowerCase()) ||
+          false) ||
+        (req.userId?.email?.toLowerCase().includes(search.toLowerCase()) ||
+          false);
+
       return matchesFilter && matchesSearch;
     });
   }, [requests, filter, search]);
 
+  // =====================
+  // Sidebar items
+  // =====================
   const menuItems = [
     { id: "dashboard", name: "Dashboard", icon: AiOutlineDashboard },
     { id: "analytics", name: "Analytics", icon: AiOutlineBarChart },
@@ -205,13 +263,19 @@ const AdminDashboard = () => {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan="4" className="p-6 text-center text-gray-500">
+                      <td
+                        colSpan="4"
+                        className="p-6 text-center text-gray-500"
+                      >
                         <div className="animate-pulse">Loading requests...</div>
                       </td>
                     </tr>
                   ) : filteredRequests.length === 0 ? (
                     <tr>
-                      <td colSpan="4" className="p-6 text-center text-gray-500">
+                      <td
+                        colSpan="4"
+                        className="p-6 text-center text-gray-500"
+                      >
                         No matching requests found.
                       </td>
                     </tr>
@@ -233,24 +297,22 @@ const AdminDashboard = () => {
                           <button
                             disabled={processingId === req._id}
                             onClick={() => handleAction(req._id, "accept")}
-                            className={`px-4 py-1 rounded flex items-center gap-2 justify-center inline-block
-                              ${
-                                processingId === req._id
-                                  ? "bg-green-300 opacity-50 cursor-not-allowed"
-                                  : "bg-green-500 hover:bg-green-600 text-white"
-                              }`}
+                            className={`px-4 py-1 rounded flex items-center gap-2 justify-center inline-block ${
+                              processingId === req._id
+                                ? "bg-green-300 opacity-50 cursor-not-allowed"
+                                : "bg-green-500 hover:bg-green-600 text-white"
+                            }`}
                           >
                             <AiOutlineCheck /> Accept
                           </button>
                           <button
                             disabled={processingId === req._id}
                             onClick={() => handleAction(req._id, "decline")}
-                            className={`px-4 py-1 rounded flex items-center gap-2 justify-center inline-block
-                              ${
-                                processingId === req._id
-                                  ? "bg-red-300 opacity-50 cursor-not-allowed"
-                                  : "bg-red-500 hover:bg-red-600 text-white"
-                              }`}
+                            className={`px-4 py-1 rounded flex items-center gap-2 justify-center inline-block ${
+                              processingId === req._id
+                                ? "bg-red-300 opacity-50 cursor-not-allowed"
+                                : "bg-red-500 hover:bg-red-600 text-white"
+                            }`}
                           >
                             <AiOutlineClose /> Decline
                           </button>
