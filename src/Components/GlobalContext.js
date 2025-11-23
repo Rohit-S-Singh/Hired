@@ -50,6 +50,10 @@ export const GlobalProvider = ({ children }) => {
     verifyToken();
   }, []);
 
+
+  console.log(user);
+  
+
   return (
     <GlobalContext.Provider
       value={{ isLoggedIn, setIsLoggedIn, user, setUser, loading }}
