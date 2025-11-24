@@ -7,13 +7,13 @@ const GlobalContext = createContext();
 export const GlobalProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // spinner flag
 
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        // ✅ Get token from localStorage (adjust if using cookies or session storage)
         const token = localStorage.getItem("jwtToken");
+
         if (!token) {
           setIsLoggedIn(false);
           setUser(null);
@@ -21,13 +21,15 @@ export const GlobalProvider = ({ children }) => {
           return;
         }
 
-        // ✅ Send request with Authorization header
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/verifytoken`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-            console.log(response);
+        const response = await axios.post(
+          `${process.env.REACT_APP_BACKEND_BASE_URL}/api/verifytoken`,
+          {}, // empty body
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (response.data.success && response.data.user) {
           setUser(response.data.user);
@@ -47,6 +49,10 @@ export const GlobalProvider = ({ children }) => {
 
     verifyToken();
   }, []);
+
+
+  console.log(user);
+  
 
   return (
     <GlobalContext.Provider
