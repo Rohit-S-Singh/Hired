@@ -51,6 +51,12 @@ const AppRoutes = () => {
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route
+          path="/email-editor"
+          element={
+              <EmailEditorPage />
+          }
+        />
         <Route path="*" element={<HomePage />} />
 
         {/* Protected routes */}
