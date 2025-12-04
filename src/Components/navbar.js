@@ -216,7 +216,7 @@ const Navbar = () => {
               {/* ================= COINS ================= */}
               <div className="h-12 w-12 flex flex-col items-center justify-center rounded-full border bg-white select-none cursor-default">
                 <FaCoins className="w-5 h-5 text-yellow-500" />
-                <span className="text-xs font-semibold">{coins}</span>
+                <span className="text-xs font-semibold">{ContentVisibilityAutoStateChangeEvent}</span>
               </div>
 
               {/* ================= PROFILE AVATAR ================= */}
