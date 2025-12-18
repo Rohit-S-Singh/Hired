@@ -1,576 +1,447 @@
-import React, { useState, useEffect } from "react";
-import { FaPlus, FaCalendarAlt, FaClock, FaUser, FaVideo, FaCheckCircle, FaTimesCircle, FaExclamationCircle, FaExclamationTriangle, FaRedo } from "react-icons/fa";
-import { Dialog, Transition } from "@headlessui/react";
-import { Fragment } from "react";
-import { useGlobalContext } from "./GlobalContext";
+import React, { useState } from 'react';
+import { Search, Calendar, CheckCircle, Clock, Users, Briefcase, Award, Building2, Download, Video } from 'lucide-react';
 
-const Interview = () => {
-  const [interviews, setInterviews] = useState([]);
-  const [mentors, setMentors] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [fetchError, setFetchError] = useState(null);
-  const { user } = useGlobalContext();
+// Mock Data
+const mockStats = [
+  { id: 1, label: 'Scheduled Interviews', value: 8, icon: Clock, color: 'bg-blue-500' },
+  { id: 2, label: 'Completed Interviews', value: 24, icon: CheckCircle, color: 'bg-green-500' },
+  { id: 3, label: 'Accepted Interviews', value: 18, icon: Calendar, color: 'bg-purple-500' },
+  { id: 4, label: 'Total Interviews', value: 32, icon: Users, color: 'bg-orange-500' },
+];
+const mockInterviews = [
+  {
+    id: 1,
+    title: "Technical Interview - React Components",
+    description: "Deep dive into React hooks and component architecture",
+    mentor: "Sarah Johnson",
+    type: "Technical",
+    scheduledDate: "Dec 20, 2024, 10:00 AM",
+    duration: "60 min",
+    status: "Accepted",
+  },
+  {
+    id: 2,
+    title: "Mock Interview - Frontend Developer",
+    description: "Full technical interview simulation",
+    mentor: "Sarah Johnson",
+    type: "Mock",
+    scheduledDate: "Dec 18, 2024, 02:30 PM",
+    duration: "90 min",
+    status: "Pending",
+  },
+  {
+    id: 3,
+    title: "Career Guidance Session",
+    description: "Discussing career path and growth opportunities",
+    mentor: "Emily Rodriguez",
+    type: "Career Guidance",
+    scheduledDate: "Dec 15, 2024, 09:00 AM",
+    duration: "60 min",
+    status: "Completed",
+  },
+  {
+    id: 4,
+    title: "Resume Review",
+    description: "Reviewing resume and providing feedback",
+    mentor: "Michael Chen",
+    type: "Resume Review",
+    scheduledDate: "Dec 22, 2024, 04:00 PM",
+    duration: "30 min",
+    status: "Pending",
+  },
+  {
+    id: 5,
+    title: "Behavioral Interview Prep",
+    description: "Practice STAR method and behavioral questions",
+    mentor: "David Park",
+    type: "Behavioral",
+    scheduledDate: "Dec 10, 2024, 11:00 AM",
+    duration: "60 min",
+    status: "Cancelled",
+  },
+  {
+    id: 6,
+    title: "System Design Interview",
+    description: "Design a distributed messaging system",
+    mentor: "Sarah Johnson",
+    type: "Technical",
+    scheduledDate: "Dec 25, 2024, 01:00 PM",
+    duration: "120 min",
+    status: "Accepted",
+  },
+];
 
-  // Form state
-  const [formData, setFormData] = useState({
-    mentor: '',
-    interviewType: '',
-    scheduledDate: '',
-    duration: 60,
-    timezone: 'UTC',
-    title: '',
-    description: '',
-    candidateNotes: ''
-  });
 
-  // Fetch interviews
-  const fetchInterviews = async () => {
-    try {
-      setLoading(true);
-      setFetchError(null);
-      const token = localStorage.getItem('jwtToken');
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/interviews`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+const mockMentors = [
+  {
+    id: 1,
+    name: 'Sarah Johnson',
+    designation: 'Senior Frontend Engineer',
+    company: 'Google',
+    experience: '8 years',
+    expertise: ['React', 'TypeScript', 'System Design'],
+    avatar: 'SJ',
+  },
+  {
+    id: 2,
+    name: 'Michael Chen',
+    designation: 'Engineering Manager',
+    company: 'Meta',
+    experience: '10 years',
+    expertise: ['Leadership', 'Backend', 'Microservices'],
+    avatar: 'MC',
+  },
+  {
+    id: 3,
+    name: 'Priya Sharma',
+    designation: 'Senior Backend Engineer',
+    company: 'Amazon',
+    experience: '7 years',
+    expertise: ['Node.js', 'AWS', 'Database Design'],
+    avatar: 'PS',
+  },
+  {
+    id: 4,
+    name: 'David Miller',
+    designation: 'Tech Lead',
+    company: 'Microsoft',
+    experience: '9 years',
+    expertise: ['Cloud Architecture', 'DevOps', 'Scalability'],
+    avatar: 'DM',
+  },
+  {
+    id: 5,
+    name: 'Emily Rodriguez',
+    designation: 'Senior Full Stack Developer',
+    company: 'Netflix',
+    experience: '6 years',
+    expertise: ['React', 'Python', 'System Design'],
+    avatar: 'ER',
+  },
+  {
+    id: 6,
+    name: 'James Wilson',
+    designation: 'Principal Engineer',
+    company: 'Apple',
+    experience: '12 years',
+    expertise: ['iOS', 'Architecture', 'Performance'],
+    avatar: 'JW',
+  },
+];
+const StatsCard = ({ stat }) => {
+  const Icon = stat.icon;
+  return (
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-gray-500 text-sm font-medium mb-1">{stat.label}</p>
+          <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+        </div>
+        <div className={`${stat.color} rounded-lg p-3`}>
+          <Icon className="w-6 h-6 text-white" />
+        </div>
+      </div>
+    </div>
+  );
+};
 
-      if (response.ok) {
-        const result = await response.json();
-        setInterviews(result.data || []);
-        setFetchError(null);
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.message || `Failed to fetch interviews (${response.status})`;
-        setFetchError(errorMessage);
-        setInterviews([]);
-        console.error('Failed to fetch interviews:', errorMessage);
-      }
-    } catch (error) {
-      const errorMessage = error.message || 'Network error occurred while fetching interviews';
-      setFetchError(errorMessage);
-      setInterviews([]);
-      console.error('Error fetching interviews:', error);
-    } finally {
-      setLoading(false);
-    }
+// Search Bar Component
+const SearchBar = ({ searchTerm, onSearchChange }) => {
+  return (
+    <div className="relative">
+      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+      <input
+        type="text"
+        placeholder="Search mentors or recruiters"
+        value={searchTerm}
+        onChange={(e) => onSearchChange(e.target.value)}
+        className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      />
+    </div>
+  );
+};
+
+// Mentor Card Component
+const MentorCard = ({ mentor, onRequestInterview }) => {
+  const avatarColors = [
+    'bg-blue-500',
+    'bg-green-500',
+    'bg-purple-500',
+    'bg-orange-500',
+    'bg-pink-500',
+    'bg-indigo-500',
+  ];
+  const colorIndex = mentor.id % avatarColors.length;
+
+  return (
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-all hover:-translate-y-1">
+      <div className="flex items-start gap-4">
+        <div className={`${avatarColors[colorIndex]} w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0`}>
+          {mentor.avatar}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-lg font-semibold text-gray-900 mb-1">{mentor.name}</h3>
+          <p className="text-gray-600 text-sm mb-3">{mentor.designation}</p>
+          
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Building2 className="w-4 h-4" />
+              <span>{mentor.company}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Briefcase className="w-4 h-4" />
+              <span>{mentor.experience} experience</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Award className="w-4 h-4" />
+              <div className="flex flex-wrap gap-1">
+                {mentor.expertise.map((skill, idx) => (
+                  <span key={idx} className="bg-gray-100 px-2 py-1 rounded text-xs font-medium">
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          <button
+            onClick={() => onRequestInterview(mentor)}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors"
+          >
+            Request Interview
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Main Dashboard Component
+const InterviewDashboard = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showInterviewHistory, setShowInterviewHistory] = useState(false);
+
+  const handleRequestInterview = (mentor) => {
+    alert(`Interview request sent to ${mentor.name}!`);
   };
 
-  // Fetch mentors
-  const fetchMentors = async () => {
-    try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/get-all-mentors`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setMentors(result || []);
-      } else {
-        console.error('Failed to fetch mentors');
-        setMentors([]);
-      }
-    } catch (error) {
-      console.error('Error fetching mentors:', error);
-      setMentors([]);
-    }
+  const handleDownloadReport = (interview) => {
+    alert(`Downloading report for: ${interview.title}`);
   };
 
-  useEffect(() => {
-    fetchInterviews();
-    fetchMentors();
-  }, []);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const handleJoinInterview = (interview) => {
+    alert(`Joining interview: ${interview.title}`);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      setSubmitting(true);
-      const token = localStorage.getItem('token');
-      
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/interviews`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Interview scheduled successfully:', result);
-        setIsModalOpen(false);
-        setFormData({
-          mentor: '',
-          interviewType: '',
-          scheduledDate: '',
-          duration: 60,
-          timezone: 'UTC',
-          title: '',
-          description: '',
-          candidateNotes: ''
-        });
-        fetchInterviews(); // Refresh the list
-      } else {
-        const error = await response.json();
-        console.error('Failed to schedule interview:', error);
-        alert('Failed to schedule interview. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error scheduling interview:', error);
-      alert('Error scheduling interview. Please try again.');
-    } finally {
-      setSubmitting(false);
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Accepted':
+        return 'bg-blue-100 text-blue-700';
+      case 'Completed':
+        return 'bg-green-100 text-green-700';
+      case 'Pending':
+        return 'bg-yellow-100 text-yellow-700';
+      case 'Cancelled':
+        return 'bg-red-100 text-red-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'completed':
-        return <FaCheckCircle className="text-green-500" />;
-      case 'rejected':
-      case 'cancelled':
-        return <FaTimesCircle className="text-red-500" />;
-      case 'pending':
-        return <FaExclamationCircle className="text-yellow-500" />;
-      case 'accepted':
-        return <FaCheckCircle className="text-blue-500" />;
+      case 'Accepted':
+      case 'Completed':
+        return <CheckCircle className="w-4 h-4" />;
+      case 'Pending':
+        return <Clock className="w-4 h-4" />;
+      case 'Cancelled':
+        return <span className="text-lg">×</span>;
       default:
-        return <FaExclamationCircle className="text-gray-500" />;
+        return null;
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'rejected':
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'accepted':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const interviewTypes = [
-    'technical',
-    'behavioral', 
-    'mock',
-    'resume_review',
-    'career_guidance',
-    'other'
-  ];
-
-  if (loading) {
+  const filteredMentors = mockMentors.filter(mentor => {
+    const searchLower = searchTerm.toLowerCase();
     return (
-      <div className="p-6 bg-gray-100 min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
+      mentor.name.toLowerCase().includes(searchLower) ||
+      mentor.designation.toLowerCase().includes(searchLower) ||
+      mentor.company.toLowerCase().includes(searchLower) ||
+      mentor.expertise.some(skill => skill.toLowerCase().includes(searchLower))
     );
-  }
+  });
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Interviews</h1>
-          <p className="text-gray-600 mt-1">Manage your interview sessions</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header Section */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">Interviews</h1>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+              TS
+            </div>
+            <div>
+              <p className="text-xl font-semibold text-gray-900">Tejas Sangvi</p>
+              <p className="text-gray-600">Backend Engineer</p>
+            </div>
+          </div>
         </div>
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700 transition-colors"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <FaPlus className="w-4 h-4" />
-          <span>Schedule an Interview</span>
-        </button>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <FaCalendarAlt className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Total Interviews</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {fetchError ? '--' : interviews.length}
-              </p>
-            </div>
-          </div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {mockStats.map(stat => (
+            <StatsCard key={stat.id} stat={stat} />
+          ))}
         </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <FaCheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Completed</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {fetchError ? '--' : interviews.filter(i => i.status === 'completed').length}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <FaClock className="w-6 h-6 text-yellow-600" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Pending</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {fetchError ? '--' : interviews.filter(i => i.status === 'pending').length}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <FaUser className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Accepted</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {fetchError ? '--' : interviews.filter(i => i.status === 'accepted').length}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Interviews Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Interview Sessions</h2>
+        {/* Search Section */}
+        <div className="mb-8">
+          <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
         </div>
-        
-        {fetchError ? (
-          <div className="text-center py-12">
-            <FaExclamationTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Failed to load interviews</h3>
-            <p className="text-gray-500 mb-4">{fetchError}</p>
-            <button
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center mx-auto"
-              onClick={fetchInterviews}
-            >
-              <FaRedo className="w-4 h-4 mr-2" />
-              Try Again
-            </button>
-          </div>
-        ) : interviews.length === 0 ? (
-          <div className="text-center py-12">
-            <FaCalendarAlt className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No interviews scheduled</h3>
-            <p className="text-gray-500 mb-4">Get started by scheduling your first interview</p>
-            <button
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              onClick={() => setIsModalOpen(true)}
-            >
-              Schedule Interview
-            </button>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Interview
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Mentor
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Scheduled Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Duration
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {interviews.map((interview) => (
-                  <tr key={interview._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {interview.title}
-                        </div>
-                        {interview.description && (
-                          <div className="text-sm text-gray-500 truncate max-w-xs">
-                            {interview.description}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-8 w-8">
-                          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                            <FaUser className="w-4 h-4 text-blue-600" />
-                          </div>
-                        </div>
-                        <div className="ml-3">
-                          <div className="text-sm font-medium text-gray-900">
-                            {interview.mentor?.name || 'Mentor'}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                        {interview.interviewType?.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatDate(interview.scheduledDate)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {interview.duration} min
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(interview.status)}`}>
-                        {getStatusIcon(interview.status)}
-                        <span className="ml-1 capitalize">{interview.status}</span>
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      {interview.meetingLink && (
-                        <a
-                          href={interview.meetingLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-900 flex items-center"
-                        >
-                          <FaVideo className="w-4 h-4 mr-1" />
-                          Join
-                        </a>
-                      )}
-                    </td>
+
+        {/* Interview Sessions Toggle Button */}
+        <div className="mb-8">
+          <button
+            onClick={() => setShowInterviewHistory(!showInterviewHistory)}
+            className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold py-3 px-6 rounded-xl transition-colors flex items-center gap-2"
+          >
+            <Calendar className="w-5 h-5" />
+            {showInterviewHistory ? 'Hide Interview Sessions' : 'View Interview Sessions'}
+          </button>
+        </div>
+
+        {/* Interview Sessions Table */}
+        {showInterviewHistory && (
+          <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900">Interview Sessions</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Interview
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Mentor
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Scheduled Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Duration
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {mockInterviews.map((interview) => (
+                    <tr key={interview.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div>
+                          <p className="font-semibold text-gray-900">{interview.title}</p>
+                          <p className="text-sm text-gray-500 mt-1">{interview.description}</p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <Users className="w-4 h-4 text-blue-600" />
+                          </div>
+                          <span className="text-gray-900">{interview.mentor}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-gray-900">{interview.type}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-gray-900">{interview.scheduledDate}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-gray-900">{interview.duration}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(interview.status)}`}>
+                          {getStatusIcon(interview.status)}
+                          {interview.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          {interview.status === 'Accepted' ? (
+                            <button
+                              onClick={() => handleJoinInterview(interview)}
+                              className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                            >
+                              <Video className="w-4 h-4" />
+                              Join
+                            </button>
+                          ) : interview.status === 'Completed' ? (
+                            <button
+                              onClick={() => handleJoinInterview(interview)}
+                              className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                            >
+                              <Video className="w-4 h-4" />
+                              Join
+                            </button>
+                          ) : (
+                            <span className="text-gray-400 text-sm">No link</span>
+                          )}
+                          
+                          {interview.status === 'Completed' && (
+                            <button
+                              onClick={() => handleDownloadReport(interview)}
+                              className="ml-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg flex items-center gap-1 text-sm font-medium transition-colors"
+                            >
+                              <Download className="w-4 h-4" />
+                              Download Report
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
-      </div>
 
-      {/* Schedule Interview Modal */}
-      <Transition appear show={isModalOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={() => setIsModalOpen(false)}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-black bg-opacity-25" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 text-center">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-              >
-                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900"
-                  >
-                    Schedule New Interview
-                  </Dialog.Title>
-                  <div className="mt-4">
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Choose Mentor
-                        </label>
-                        <select
-                          name="mentor"
-                          value={formData.mentor}
-                          onChange={handleInputChange}
-                          required
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value="">Select a mentor</option>
-                          {mentors.map((mentor) => (
-                            <option key={mentor._id} value={mentor._id}>
-                              {mentor.name} - {mentor.profile?.expertise?.join(', ')}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Interview Type
-                        </label>
-                        <select
-                          name="interviewType"
-                          value={formData.interviewType}
-                          onChange={handleInputChange}
-                          required
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value="">Select interview type</option>
-                          {interviewTypes.map((type) => (
-                            <option key={type} value={type}>
-                              {type.replace('_', ' ').toUpperCase()}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Title
-                        </label>
-                        <input
-                          type="text"
-                          name="title"
-                          value={formData.title}
-                          onChange={handleInputChange}
-                          required
-                          placeholder="e.g., Technical Interview - React"
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Scheduled Date & Time
-                        </label>
-                        <input
-                          type="datetime-local"
-                          name="scheduledDate"
-                          value={formData.scheduledDate}
-                          onChange={handleInputChange}
-                          required
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Duration (minutes)
-                        </label>
-                        <select
-                          name="duration"
-                          value={formData.duration}
-                          onChange={handleInputChange}
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value={30}>30 minutes</option>
-                          <option value={60}>60 minutes</option>
-                          <option value={90}>90 minutes</option>
-                          <option value={120}>120 minutes</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Description (Optional)
-                        </label>
-                        <textarea
-                          name="description"
-                          value={formData.description}
-                          onChange={handleInputChange}
-                          rows={3}
-                          placeholder="Brief description of what you'd like to discuss..."
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Your Notes (Optional)
-                        </label>
-                        <textarea
-                          name="candidateNotes"
-                          value={formData.candidateNotes}
-                          onChange={handleInputChange}
-                          rows={2}
-                          placeholder="Any specific questions or topics you'd like to cover..."
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-
-                      <div className="flex justify-end space-x-3 pt-4">
-                        <button
-                          type="button"
-                          onClick={() => setIsModalOpen(false)}
-                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          disabled={submitting}
-                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {submitting ? 'Scheduling...' : 'Schedule Interview'}
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </Dialog.Panel>
-              </Transition.Child>
+        {/* Mentor Cards */}
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Available Mentors & Recruiters
+          </h2>
+          {filteredMentors.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-xl border border-gray-100">
+              <p className="text-gray-500 text-lg">No mentors found matching your search.</p>
             </div>
-          </div>
-        </Dialog>
-      </Transition>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredMentors.map(mentor => (
+                <MentorCard
+                  key={mentor.id}
+                  mentor={mentor}
+                  onRequestInterview={handleRequestInterview}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
 
-export default Interview;
+export default InterviewDashboard;

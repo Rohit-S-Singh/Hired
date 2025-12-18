@@ -14,30 +14,42 @@ const Login = () => {
 
   const { setIsLoggedIn, setUser } = useGlobalContext();
 
-  const handleLogin = async (event) => {
-    event.preventDefault();
-    const requestBody = { email: userName, password };
-    const url = `${process.env.REACT_APP_BACKEND_BASE_URL}/api/login`;
 
-    try {
-      const response = await axios.post(url, requestBody);
-      if (!response.data.token) {
-        toast.error("Login failed! Invalid credentials.");
-      } else {
-        setIsLoggedIn(true);
-        setUser({ username: response.data.username, email: response.data.email });
-        localStorage.setItem("jwtToken", response.data.token);
-        toast.success("Login successful!");
-        setTimeout(() => navigate("/overview"), 2000);
-      }
-    } catch (error) {
-      toast.error("Error during login!");
-      console.error("Error during login:", error);
-    }
-  };
 
-  const handleGoogleSuccess = async (credentialResponse) => {
-    try {
+
+
+const handleLogin = async (event) => {
+  event.preventDefault();
+
+  try {
+    const response = await axios.post(
+      `${process.env.REACT_APP_BACKEND_BASE_URL}/api/login`,
+      { email: userName, password }
+    );
+
+    const { token, user } = response.data;
+
+    localStorage.setItem("jwtToken", token);
+    setIsLoggedIn(true);
+    setUser(user);
+
+    toast.success("Login successful!");
+    setTimeout(() => navigate("/overview"), 1500);
+
+  } catch (error) {
+    toast.error(
+      error.response?.data?.errorMessage || "Login failed"
+    );
+  }
+};
+
+
+
+
+
+ const handleGoogleSuccess = async (credentialResponse) => {
+   
+  try {
       const idToken = credentialResponse.credential;
       const url = `${process.env.REACT_APP_BACKEND_BASE_URL}/api/oauth2/callback`;
       const response = await axios.post(url, { token: idToken });
@@ -62,6 +74,15 @@ const Login = () => {
     }
   };
 
+  
+  
+
+
+
+
+
+  
+  
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
