@@ -28,6 +28,17 @@ import RecruiterProfile from './Components/RecruiterProfile';
 import NotificationsList from './Components/NotificationsList';
 import AdminDashboard from "./Components/AdminDashboard.jsx";
 import ProtectedRoute from "./Components/ProtectedRoute.js";
+import PlacementSearchPage from "./Components/SearchPage.js";
+import Profilepage_search from "./Components/Profilepage-search.js";
+import CompanyProfilePage from "./Components/Company-Search.js";
+import JobDetailsPage from "./Components/Job-Search.js";
+import InterviewPage from "./Components/interviews.js";
+import MentorDashboard from "./Components/interview-mentor.js";
+import JobsListingPage from "./Components/jobs.js";
+import AppWithProvider from "./Components/track-job.js";
+import EventDiscoveryPlatform from "./Components/Events.js";
+import ResumeDashboard from "./pages/Resume/ResumeDashboard.jsx";
+
 
 const AppRoutes = () => {
   const { isLoggedIn } = useGlobalContext();
@@ -58,6 +69,20 @@ const AppRoutes = () => {
           }
         />
         <Route path="*" element={<HomePage />} />
+        <Route path="/placement-search" element={<PlacementSearchPage />} />
+        <Route path="/profile-search" element={<Profilepage_search />} />
+        <Route path="/company-search" element={<CompanyProfilePage />} />
+        <Route path="/job-details" element={<JobDetailsPage />} />
+        
+        <Route path="/interview-page" element={<InterviewPage />} />
+        <Route path="/MentorDashboard-interview" element={<MentorDashboard />} />
+        <Route path="/jobs" element={<JobsListingPage />} />
+        <Route path="/jobs-track" element={<AppWithProvider />} />
+        <Route path="/events" element={<EventDiscoveryPlatform />} />
+        <Route path="/resume" element={<ResumeDashboard />} />
+        
+      
+
 
         {/* Protected routes */}
         <Route
