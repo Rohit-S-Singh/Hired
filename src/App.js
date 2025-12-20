@@ -46,9 +46,14 @@ import RecruitersList from "./Components/RecruitersList";
 import RecruiterProfile from "./Components/RecruiterProfile";
 import NotificationsList from "./Components/NotificationsList";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
-import MentorDashboard from "./Components/interview-mentor";
+// import MentorDashboard from "./Components/interview-mentor";
 import PostJobPage from "./pages/Jobs/PostJob";
-
+import InterviewHistory from "./pages/interviews/InterviewHistory";
+import FindMentor from "./pages/interviews/FindMentor";
+import MentorDetail from "./pages/interviews/MentorDetail";
+import MentorDashboard from "./pages/interviews/MentorDashboard";
+import ScheduledInterviewPage from "./pages/interviews/ScheduledInterviewPage";
+import InterviewHistoryPage from "./pages/interviews/InterviewHistoryPage";
 // ================= ROUTES =================
 
 const AppRoutes = () => {
@@ -91,7 +96,12 @@ const AppRoutes = () => {
           
           <Route path="/interviews" element={<Interview />} />
           <Route path="/new-interview" element={<InterviewWindow />} />
-
+          <Route path="/history-interview" element={<InterviewHistory />} />
+          <Route path="/find-mentor" element={<FindMentor />} />
+     <Route path="/mentor/:mentorId" element={<MentorDetail />} />
+     <Route path="/ScheduledInterviewPage" element={<ScheduledInterviewPage />} />
+     <Route path="/InterviewHistoryPage" element={<InterviewHistoryPage />} />
+ 
           <Route
             path="/MentorDashboard-interview"
             element={<MentorDashboard />}
