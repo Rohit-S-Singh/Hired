@@ -1,88 +1,136 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 
-import { useGlobalContext } from "./GlobalContext";
+import { useGlobalContext } from "../pages/AUTH/GlobalContext";
 
 const Login = () => {
   const [userName, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
+  const [checkingSession, setCheckingSession] = useState(true);
 
+  const navigate = useNavigate();
   const { setIsLoggedIn, setUser } = useGlobalContext();
 
+  const BASE_URL = process.env.REACT_APP_BACKEND_BASE_URL;
+
+  // ======================================================
+  // 🔐 AUTO VERIFY JWT ON LOGIN PAGE MOUNT
+  // ======================================================
+  useEffect(() => {
+    const autoVerify = async () => {
+      const token = localStorage.getItem("jwtToken");
+
+      if (!token) {
+        setCheckingSession(false);
+        return;
+      }
+
+      try {
+        const res = await axios.post(
+          `${BASE_URL}/api/verifytoken`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (res.data.success && res.data.user) {
+          // ✅ Auto-login
+          setIsLoggedIn(true);
+          setUser(res.data.user);
+          navigate("/overview", { replace: true });
+        } else {
+          localStorage.removeItem("jwtToken");
+        }
+      } catch (err) {
+        localStorage.removeItem("jwtToken");
+      } finally {
+        setCheckingSession(false);
+      }
+    };
+
+    autoVerify();
+  }, [navigate, setIsLoggedIn, setUser, BASE_URL]);
 
 
 
+  // ======================================================
+  // 🔐 NORMAL EMAIL/PASSWORD LOGIN
+  // ======================================================
+  const handleLogin = async (event) => {
+    event.preventDefault();
 
-const handleLogin = async (event) => {
-  event.preventDefault();
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/api/login`,
+        { email: userName, password }
+      );
 
-  try {
-    const response = await axios.post(
-      `${process.env.REACT_APP_BACKEND_BASE_URL}/api/login`,
-      { email: userName, password }
-    );
+      const { token, user } = response.data;
 
-    const { token, user } = response.data;
+      localStorage.setItem("jwtToken", token);
+      setIsLoggedIn(true);
+      setUser(user);
 
-    localStorage.setItem("jwtToken", token);
-    setIsLoggedIn(true);
-    setUser(user);
+      toast.success("Login successful!");
+      setTimeout(() => navigate("/overview"), 1500);
+    } catch (error) {
+      toast.error(error.response?.data?.errorMessage || "Login failed");
+    }
+  };
 
-    toast.success("Login successful!");
-    setTimeout(() => navigate("/overview"), 1500);
-
-  } catch (error) {
-    toast.error(
-      error.response?.data?.errorMessage || "Login failed"
-    );
-  }
-};
-
-
-
-
-
- const handleGoogleSuccess = async (credentialResponse) => {
-   
-  try {
+  // ======================================================
+  // 🔐 GOOGLE LOGIN
+  // ======================================================
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
       const idToken = credentialResponse.credential;
-      const url = `${process.env.REACT_APP_BACKEND_BASE_URL}/api/oauth2/callback`;
-      const response = await axios.post(url, { token: idToken });
+
+      const response = await axios.post(
+        `${BASE_URL}/api/oauth2/callback`,
+        { token: idToken }
+      );
 
       if (response.data.token) {
-        console.log("Google login successful:", response);
-        setIsLoggedIn(true);
-        setUser({ 
-          username: response.data.username, 
-          email: response.data.email, 
-          picture: response.data.avatar // <-- set avatar as picture
-        });
         localStorage.setItem("jwtToken", response.data.token);
+
+        setIsLoggedIn(true);
+        setUser({
+          email: response.data.email,
+          picture: response.data.avatar,
+          name: response.data.username,
+        });
+
         toast.success("Google login successful!");
-        setTimeout(() => navigate("/overview"), 2000);
+        setTimeout(() => navigate("/overview"), 1500);
       } else {
         toast.error("Google login failed!");
       }
     } catch (error) {
       toast.error("Google login error!");
-      console.error("Google login error:", error);
     }
   };
 
-  
-  
+  // ======================================================
+  // ⏳ SHOW LOADER WHILE CHECKING SESSION
+  // ======================================================
+  if (checkingSession) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-gray-600">Checking session...</p>
+      </div>
+    );
+  }
 
-
-
-
-
-  
-  
+  // ======================================================
+  // 🧾 LOGIN UI
+  // ======================================================
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -90,9 +138,11 @@ const handleLogin = async (event) => {
           <div className="flex justify-center mb-4">
             <span className="text-3xl">✅</span>
           </div>
+
           <h2 className="text-2xl font-bold text-center text-gray-800">
             Welcome Back!
           </h2>
+
           <p className="text-center text-gray-600 text-sm">
             Log in to continue exploring new jobs and opportunities.
           </p>
@@ -101,14 +151,15 @@ const handleLogin = async (event) => {
             <div className="mb-4">
               <label className="block text-gray-700">Email</label>
               <input
-                type="text"
+                type="email"
                 value={userName}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-400"
                 placeholder="Enter your email"
               />
             </div>
+
             <div className="mb-4">
               <label className="block text-gray-700">Password</label>
               <input
@@ -116,10 +167,11 @@ const handleLogin = async (event) => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-400"
                 placeholder="Enter your password"
               />
             </div>
+
             <button
               type="submit"
               className="w-full bg-black text-white py-2 rounded-lg hover:opacity-90 transition"
@@ -142,7 +194,7 @@ const handleLogin = async (event) => {
           </div>
 
           <p className="text-center text-gray-600 text-sm mt-4">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <span
               className="text-black font-medium cursor-pointer"
               onClick={() => navigate("/register")}

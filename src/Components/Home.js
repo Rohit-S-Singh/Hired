@@ -5,7 +5,7 @@ import RecruiterPromptModal from "./RecruiterPromptModal.jsx";
 import MentorCarousel from "./MentorCarousel.js";
 import HelpSection from "./Faqs.js";
 import FAQSection from "./Faq.js";
-import { useGlobalContext } from "./GlobalContext";
+import { useGlobalContext } from "../pages/AUTH/GlobalContext.js";
 
 const HomePage = () => {
     const navigate = useNavigate();

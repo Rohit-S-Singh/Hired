@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, Fragment } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaGoogle, FaMicrosoft, FaVideo, FaBell, FaCoins } from "react-icons/fa";
 import { Dialog, Transition } from "@headlessui/react";
-import { useGlobalContext } from "./GlobalContext";
+import { useGlobalContext } from "../pages/AUTH/GlobalContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

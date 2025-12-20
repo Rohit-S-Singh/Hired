@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { X, User, Briefcase, GraduationCap, Building, Award, Code, MapPin, Calendar, TrendingUp } from "lucide-react";
-import { useGlobalContext } from './GlobalContext';
+import { useGlobalContext } from '../pages/AUTH/GlobalContext';
 
 
 export default function UserCategoryModal({ isOpen, onClose, onSubmit }) {

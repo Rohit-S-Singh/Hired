@@ -229,6 +229,10 @@ const mockApplicationsData = [
   }
 ];
 
+
+
+
+
 // Context for Jobs State Management
 const JobsContext = createContext();
 
@@ -440,6 +444,11 @@ const SearchBar = () => {
 
 const FilterSection = () => {
   const { filters, toggleFilter, clearAllFilters, activeFilterCount } = useJobs();
+  const [showSkillsModal, setShowSkillsModal] = useState(false);
+  const [userSkills, setUserSkills] = useState('');
+  const [selectedResume, setSelectedResume] = useState('');
+  const [isLoadingBestJobs, setIsLoadingBestJobs] = useState(false);
+  const [bestJobsResult, setBestJobsResult] = useState(null);
 
   const filterOptions = {
     jobType: ['Full-Time', 'Internship', 'Contract'],
@@ -451,79 +460,297 @@ const FilterSection = () => {
     source: ['Internal', 'LinkedIn', 'Naukri', 'Company Career Page']
   };
 
+  const handleFindBestJobs = async () => {
+    if (!userSkills.trim()) {
+      alert('Please enter your skills first!');
+      setShowSkillsModal(true);
+      return;
+    }
+
+    setIsLoadingBestJobs(true);
+    
+    try {
+      // Simulating API call to backend
+      const response = await fetch('/api/find-best-jobs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          skills: userSkills,
+          resume: selectedResume,
+          filters: filters
+        })
+      });
+
+      // Simulate response delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Mock response - replace with actual API response
+      const mockResult = {
+        matchedJobs: 8,
+        topMatch: 'Software Engineer - Full Stack',
+        recommendations: [
+          'Based on your React skills, 3 frontend positions are highly recommended',
+          'Your Node.js experience matches 5 backend positions',
+          'Consider applying to TechCorp Solutions - 95% match'
+        ]
+      };
+      
+      setBestJobsResult(mockResult);
+      alert(`Found ${mockResult.matchedJobs} jobs matching your profile!\n\nTop Match: ${mockResult.topMatch}\n\n${mockResult.recommendations.join('\n')}`);
+      
+    } catch (error) {
+      console.error('Error finding best jobs:', error);
+      alert('Failed to find best jobs. Please try again.');
+    } finally {
+      setIsLoadingBestJobs(false);
+    }
+  };
+
+  const handleSaveSkills = () => {
+    if (userSkills.trim()) {
+      setShowSkillsModal(false);
+      // Optionally trigger search immediately after saving
+      // handleFindBestJobs();
+    } else {
+      alert('Please enter at least one skill');
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="font-semibold text-gray-900 flex items-center gap-2">
-          <Filter className="w-5 h-5" />
-          Filters
+    <>
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+            <Filter className="w-5 h-5" />
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">
+                {activeFilterCount}
+              </span>
+            )}
+          </h2>
           {activeFilterCount > 0 && (
-            <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">
-              {activeFilterCount}
-            </span>
+            <button
+              onClick={clearAllFilters}
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Clear All
+            </button>
           )}
-        </h2>
-        {activeFilterCount > 0 && (
-          <button
-            onClick={clearAllFilters}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-          >
-            Clear All
-          </button>
-        )}
-      </div>
+        </div>
 
-      <div className="mb-6">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Job Type</h3>
-        <div className="space-y-2">
-          {filterOptions.jobType.map(type => (
-            <label key={type} className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filters.jobType.includes(type)}
-                onChange={() => toggleFilter('jobType', type)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">{type}</span>
-            </label>
-          ))}
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Job Type</h3>
+          <div className="space-y-2">
+            {filterOptions.jobType.map(type => (
+              <label key={type} className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.jobType.includes(type)}
+                  onChange={() => toggleFilter('jobType', type)}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{type}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Work Location</h3>
+          <div className="space-y-2">
+            {filterOptions.locationType.map(({ value, label }) => (
+              <label key={value} className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.locationType.includes(value)}
+                  onChange={() => toggleFilter('locationType', value)}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Job Source</h3>
+          <div className="space-y-2">
+            {filterOptions.source.map(source => (
+              <label key={source} className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.source.includes(source)}
+                  onChange={() => toggleFilter('source', source)}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{source}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* AI-Powered Job Matching Section */}
+        <div className="pt-6 border-t border-gray-200">
+          <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg p-4 mb-4">
+            <div className="flex items-start gap-2 mb-3">
+              <TrendingUp className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">AI Job Matching</h3>
+                <p className="text-xs text-gray-600">Find jobs that perfectly match your skills and resume</p>
+              </div>
+            </div>
+            
+            {userSkills && (
+              <div className="bg-white rounded p-2 mb-3 text-xs">
+                <span className="font-medium text-gray-700">Your Skills:</span>
+                <p className="text-gray-600 mt-1 line-clamp-2">{userSkills}</p>
+              </div>
+            )}
+
+            <button
+              onClick={() => setShowSkillsModal(true)}
+              className="w-full px-4 py-2 bg-white border border-purple-200 text-purple-600 rounded-lg text-sm font-medium hover:bg-purple-50 transition-colors mb-2 flex items-center justify-center gap-2"
+            >
+              <Edit2 className="w-4 h-4" />
+              {userSkills ? 'Update Skills & Resume' : 'Add Your Skills & Resume'}
+            </button>
+
+            <button
+              onClick={handleFindBestJobs}
+              disabled={isLoadingBestJobs}
+              className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg text-sm font-semibold hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md"
+            >
+              {isLoadingBestJobs ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Finding Best Matches...
+                </>
+              ) : (
+                <>
+                  <Target className="w-4 h-4" />
+                  Find Best Jobs for Me
+                </>
+              )}
+            </button>
+          </div>
+
+          {bestJobsResult && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 animate-fade-in">
+              <div className="flex items-center gap-2 text-green-700 font-semibold mb-2">
+                <CheckCircle className="w-5 h-5" />
+                {bestJobsResult.matchedJobs} Jobs Found!
+              </div>
+              <p className="text-sm text-green-600">{bestJobsResult.topMatch}</p>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="mb-6">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Work Location</h3>
-        <div className="space-y-2">
-          {filterOptions.locationType.map(({ value, label }) => (
-            <label key={value} className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filters.locationType.includes(value)}
-                onChange={() => toggleFilter('locationType', value)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">{label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+      {/* Skills and Resume Modal */}
+      {showSkillsModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold mb-1">Your Profile</h2>
+                  <p className="text-purple-100 text-sm">Help us find the perfect jobs for you</p>
+                </div>
+                <button 
+                  onClick={() => setShowSkillsModal(false)} 
+                  className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
 
-      <div>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Job Source</h3>
-        <div className="space-y-2">
-          {filterOptions.source.map(source => (
-            <label key={source} className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filters.source.includes(source)}
-                onChange={() => toggleFilter('source', source)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">{source}</span>
-            </label>
-          ))}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                  <Target className="w-4 h-4 text-purple-600" />
+                  Your Skills *
+                </label>
+                <p className="text-xs text-gray-600 mb-3">
+                  Enter your skills separated by commas (e.g., React, Node.js, Python, Machine Learning)
+                </p>
+                <textarea
+                  value={userSkills}
+                  onChange={(e) => setUserSkills(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  rows="4"
+                  placeholder="e.g., React, Node.js, JavaScript, TypeScript, MongoDB, AWS, Docker, Git"
+                />
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {userSkills && userSkills.split(',').filter(s => s.trim()).map((skill, idx) => (
+                    <span key={idx} className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
+                      {skill.trim()}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-purple-600" />
+                  Select Resume
+                </label>
+                <p className="text-xs text-gray-600 mb-3">
+                  Choose the resume version you want to use for job matching
+                </p>
+                <select
+                  value={selectedResume}
+                  onChange={(e) => setSelectedResume(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="">Select a resume...</option>
+                  <option value="resume_v3_techstack.pdf">Resume_v3_TechStack.pdf</option>
+                  <option value="resume_v2_pm.pdf">Resume_v2_PM.pdf</option>
+                  <option value="resume_v1_dataanalytics.pdf">Resume_v1_DataAnalytics.pdf</option>
+                  <option value="resume_v3_frontend.pdf">Resume_v3_Frontend.pdf</option>
+                  <option value="resume_v2_backend.pdf">Resume_v2_Backend.pdf</option>
+                </select>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex gap-3">
+                  <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-blue-900 text-sm mb-1">How it works</h4>
+                    <ul className="text-xs text-blue-700 space-y-1">
+                      <li>• Our AI analyzes your skills and resume</li>
+                      <li>• We match you with jobs that fit your profile</li>
+                      <li>• Get personalized recommendations instantly</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 p-6 bg-gray-50">
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setShowSkillsModal(false)}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveSkills}
+                  className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all flex items-center gap-2 shadow-md"
+                >
+                  <Save className="w-4 h-4" />
+                  Save & Continue
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 };
 

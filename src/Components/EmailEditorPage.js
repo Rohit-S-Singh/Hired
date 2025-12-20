@@ -3,7 +3,7 @@ import Mustache from "mustache";
 import Lottie from "lottie-react";
 import emailTemplateAnimation from "../assets/Email-Template.json";
 
-import { useGlobalContext } from "./GlobalContext";
+import { useGlobalContext } from "../pages/AUTH/GlobalContext";
 
 const TemplateEditor = () => {
   const [template, setTemplate] = useState(`
