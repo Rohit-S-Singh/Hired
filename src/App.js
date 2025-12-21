@@ -34,7 +34,7 @@ import Interview from "./pages/interviews/interviews";
 import InterviewWindow from "./Components/InterviewWindow";
 import Blog from "./Components/blog";
 import Tools from "./Components/tools";
-import Profile from "./Components/profile";
+import Profile from "./pages/Profile/profile";
 import EmailSender from "./Components/Email-Sender";
 import EmailSetup from "./Components/EmailSetup";
 import EmailEditorPage from "./Components/EmailEditorPage";
@@ -54,6 +54,7 @@ import MentorDetail from "./pages/interviews/MentorDetail";
 import MentorDashboard from "./pages/interviews/MentorDashboard";
 import ScheduledInterviewPage from "./pages/interviews/ScheduledInterviewPage";
 import InterviewHistoryPage from "./pages/interviews/InterviewHistoryPage";
+import EditProfile from "./pages/Profile/EditProfile";
 // ================= ROUTES =================
 
 const AppRoutes = () => {
@@ -107,8 +108,14 @@ const AppRoutes = () => {
             element={<MentorDashboard />}
           />
         </Route>
-        
+{/*profile--------------------------------------------------------------*/}
           <Route path="/profile" element={<Profile />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
+
+
+          
+          {/*profile--------------------------------------------------------------*/}
+
           <Route path="/blog" element={<Blog />} />
           <Route path="/tools" element={<Tools />} />
           <Route path="/about" element={<About />} />
