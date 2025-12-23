@@ -7,7 +7,7 @@
   import axios from 'axios';
 
   import JobCategories from './exploreJobs';
-  import { useGlobalContext } from './GlobalContext';
+  import { useGlobalContext } from '../pages/AUTH/GlobalContext.js';
   import FeatureHighlights from './FeatureHighlights.js';
   import UserCategoryModal from './UserCategoryModal.js';
 
@@ -16,7 +16,7 @@
     return today.toDateString();
   };
 
-  const Dashboard = () => {
+  const   Dashboard = () => {
     const { user, setUser } = useGlobalContext();
 
     const [applications, setApplications] = useState([]);

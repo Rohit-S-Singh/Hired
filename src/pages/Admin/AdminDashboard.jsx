@@ -38,7 +38,7 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       const { data } = await axios.get(
-        `${process.env.REACT_APP_BACKEND_BASE_URL}/api/pending-requests`
+        `${process.env.REACT_APP_BACKEND_BASE_URL}/api/Admin/pending-request`
       );
 
       if (data.success) {
@@ -97,7 +97,7 @@ const AdminDashboard = () => {
       );
 
       await axios.post(
-        `${process.env.REACT_APP_BACKEND_BASE_URL}/api/requests/${request.userId._id}/${role}/${action}`
+        `${process.env.REACT_APP_BACKEND_BASE_URL}/api/Admin/requests/${request.userId._id}/${role}/${action}`
       );
 
       toast.dismiss();

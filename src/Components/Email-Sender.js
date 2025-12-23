@@ -12,7 +12,7 @@ import * as XLSX from 'xlsx';
 import { Dialog, Transition } from '@headlessui/react';
 import { FaUser, FaClock } from 'react-icons/fa';
 import axios from 'axios';
-import { useGlobalContext } from './GlobalContext';
+import { useGlobalContext } from '../pages/AUTH/GlobalContext';
 
 const EmailSender = () => {
   const { user } = useGlobalContext();

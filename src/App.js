@@ -1,47 +1,70 @@
 import React, { useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import Navbar from './Components/navbar';
-import Footer from './Components/Footer';
-import { useGlobalContext } from './Components/GlobalContext';
-import { LoaderProvider, useLoader } from './Components/LoaderContext';
-import LoaderOverlay from './Components/LoaderOverlay';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 
-import Overview from './Components/dashboard';
-import Upskill from './Components/Upskill';
-import JobApplication from './Components/ApplicationStatus';
-import Interview from './Components/interviews';
-import Blog from './Components/blog';
-import Tools from './Components/tools';
-import Login from './Components/Login';
-import Register from './Components/Register';
-import Profile from './Components/profile';
-import InterviewWindow from './Components/InterviewWindow';
-import HomePage from './Components/Home';
-import EmailSender from './Components/Email-Sender';
-import EmailSetup from './Components/EmailSetup';
-import EmailEditorPage from './Components/EmailEditorPage';
-import About from './Components/about';
-import JobBoard from './Components/JobBoard';
-import ReferralRequestPage from './Components/ReferralRequestPage';
-import RecruitersList from './Components/RecruitersList';
-import RecruiterProfile from './Components/RecruiterProfile';
-import NotificationsList from './Components/NotificationsList';
-import AdminDashboard from "./Components/AdminDashboard.jsx";
-import ProtectedRoute from "./Components/ProtectedRoute.js";
-import PlacementSearchPage from "./Components/SearchPage.js";
-import Profilepage_search from "./Components/Profilepage-search.js";
-import CompanyProfilePage from "./Components/Company-Search.js";
-import JobDetailsPage from "./Components/Job-Search.js";
-import InterviewPage from "./Components/interviews.js";
-import MentorDashboard from "./Components/interview-mentor.js";
-import JobsListingPage from "./Components/jobs.js";
-import AppWithProvider from "./Components/track-job.js";
-import EventDiscoveryPlatform from "./Components/Events.js";
-import ResumeDashboard from "./pages/Resume/ResumeDashboard.jsx";
+import Navbar from "./Components/navbar";
+import Footer from "./Components/Footer";
 
+import { LoaderProvider, useLoader } from "./Components/LoaderContext";
+import LoaderOverlay from "./Components/LoaderOverlay";
+
+import ProtectedLayout from "./Components/ProtectedLayout";
+
+/* ================= PUBLIC PAGES ================= */
+import HomePage from "./Components/Home";
+import Login from "./Components/Login";
+import Register from "./Components/Register";
+import PlacementSearchPage from "./Components/SearchPage";
+import Profilepage_search from "./Components/Profilepage-search";
+import CompanyProfilePage from "./Components/Company-Search";
+import JobDetails from "./pages/Jobs/JobDetails";
+import EventDiscoveryPlatform from "./pages/events/Events";
+import RandomJobs from "./pages/Jobs/RandomJobs";
+import SavedJobs from "./pages/Jobs/SavedJobs";
+
+/* ================= PROTECTED PAGES ================= */
+import Overview from "./Components/dashboard";
+import Upskill from "./Components/Upskill";
+import JobApplication from "./Components/ApplicationStatus";
+import Interview from "./pages/interviews/interviews";
+import InterviewWindow from "./Components/InterviewWindow";
+import InterviewHistory from "./pages/interviews/InterviewHistory";
+import FindMentor from "./pages/interviews/FindMentor";
+import MentorDetail from "./pages/interviews/MentorDetail";
+import ScheduledInterviewPage from "./pages/interviews/ScheduledInterviewPage";
+import InterviewHistoryPage from "./pages/interviews/InterviewHistoryPage";
+import MentorDashboard from "./pages/interviews/MentorDashboard";
+
+import Profile from "./pages/Profile/profile";
+import EditProfile from "./pages/Profile/EditProfile";
+
+import Blog from "./Components/blog";
+import Tools from "./Components/tools";
+import About from "./Components/about";
+
+import EmailSender from "./Components/Email-Sender";
+import EmailSetup from "./Components/EmailSetup";
+import EmailEditorPage from "./Components/EmailEditorPage";
+
+import ResumeDashboard from "./pages/Resume/ResumeDashboard";
+import AppWithProvider from "./pages/Jobs/track-job";
+
+import ReferralRequestPage from "./Components/ReferralRequestPage";
+import RecruitersList from "./Components/RecruitersList";
+import RecruiterProfile from "./Components/RecruiterProfile";
+import NotificationsList from "./Components/NotificationsList";
+
+import PostJobPage from "./pages/Jobs/PostJob";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
+
+/* ================= ROUTES ================= */
 
 const AppRoutes = () => {
-  const { isLoggedIn } = useGlobalContext();
   const location = useLocation();
   const { setIsLoading } = useLoader();
 
@@ -51,190 +74,84 @@ const AppRoutes = () => {
     return () => clearTimeout(timer);
   }, [location]);
 
+  const hideNavbar = ["/login", "/register"].includes(location.pathname);
+
   return (
     <div className="App">
       <LoaderOverlay />
-
-      {/* Navbar rendered for all pages except login/register */}
-      {!["/login", "/register"].includes(location.pathname) && <Navbar />}
+      {!hideNavbar && <Navbar />}
 
       <Routes>
-        {/* Public routes */}
+        {/* ================= PUBLIC ROUTES ================= */}
+        <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route
-          path="/email-editor"
-          element={
-              <EmailEditorPage />
-          }
-        />
-        <Route path="*" element={<HomePage />} />
+
         <Route path="/placement-search" element={<PlacementSearchPage />} />
         <Route path="/profile-search" element={<Profilepage_search />} />
         <Route path="/company-search" element={<CompanyProfilePage />} />
-        <Route path="/job-details" element={<JobDetailsPage />} />
-        
-        <Route path="/interview-page" element={<InterviewPage />} />
-        <Route path="/MentorDashboard-interview" element={<MentorDashboard />} />
-        <Route path="/jobs" element={<JobsListingPage />} />
-        <Route path="/jobs-track" element={<AppWithProvider />} />
+
+        <Route path="/jobs" element={<RandomJobs />} />
+        <Route path="/SavedJobs" element={<SavedJobs />} />
+        <Route path="/job/:id" element={<JobDetails />} />
         <Route path="/events" element={<EventDiscoveryPlatform />} />
-        <Route path="/resume" element={<ResumeDashboard />} />
-        
-      
 
+        {/* ================= PROTECTED ROUTES ================= */}
+        <Route element={<ProtectedLayout />}>
+          {/* Dashboard */}
+          <Route path="/overview" element={<Overview />} />
+          <Route path="/upskill" element={<Upskill />} />
+          <Route path="/application-status" element={<JobApplication />} />
 
-        {/* Protected routes */}
-        <Route
-          path="/AdminDashboard"
-          element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/overview"
-          element={
-            <ProtectedRoute>
-              <Overview />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/upskill"
-          element={
-            <ProtectedRoute>
-              <Upskill />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/application-status"
-          element={
-            <ProtectedRoute>
-              <JobApplication />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/interviews"
-          element={
-            <ProtectedRoute>
-              <Interview />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/blog"
-          element={
-            <ProtectedRoute>
-              <Blog />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/tools"
-          element={
-            <ProtectedRoute>
-              <Tools />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/new-interview"
-          element={
-            <ProtectedRoute>
-              <InterviewWindow />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/email-sender"
-          element={
-            <ProtectedRoute>
-              <EmailSender />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/email-setup"
-          element={
-            <ProtectedRoute>
-              <EmailSetup />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/email-editor"
-          element={
-            <ProtectedRoute>
-              <EmailEditorPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/about"
-          element={
-            <ProtectedRoute>
-              <About />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/jobs"
-          element={
-            <ProtectedRoute>
-              <JobBoard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/referral/:jobId"
-          element={
-            <ProtectedRoute>
-              <ReferralRequestPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/recruiters"
-          element={
-            <ProtectedRoute>
-              <RecruitersList />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/recruiter/:recruiterId"
-          element={
-            <ProtectedRoute>
-              <RecruiterProfile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/notifications"
-          element={
-            <ProtectedRoute>
-              <NotificationsList />
-            </ProtectedRoute>
-          }
-        />
+          {/* Interviews */}
+          <Route path="/interviews" element={<Interview />} />
+          <Route path="/new-interview" element={<InterviewWindow />} />
+          <Route path="/history-interview" element={<InterviewHistory />} />
+          <Route path="/find-mentor" element={<FindMentor />} />
+          <Route path="/mentor/:mentorId" element={<MentorDetail />} />
+          <Route path="/scheduled-interviews" element={<ScheduledInterviewPage />} />
+          <Route path="/InterviewHistoryPage" element={<InterviewHistoryPage />} />
+          <Route path="/MentorDashboard-interview" element={<MentorDashboard />} />
+
+          {/* Profile */}
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
+
+          {/* Content */}
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/tools" element={<Tools />} />
+          <Route path="/about" element={<About />} />
+
+          {/* Email */}
+          <Route path="/email-sender" element={<EmailSender />} />
+          <Route path="/email-setup" element={<EmailSetup />} />
+          <Route path="/email-editor" element={<EmailEditorPage />} />
+
+          {/* Resume & Jobs */}
+          <Route path="/resume" element={<ResumeDashboard />} />
+          <Route path="/jobs-track" element={<AppWithProvider />} />
+          <Route path="/post-job" element={<PostJobPage />} />
+
+          {/* Recruiters */}
+          <Route path="/recruiters" element={<RecruitersList />} />
+          <Route path="/recruiter/:recruiterId" element={<RecruiterProfile />} />
+          <Route path="/referral/:jobId" element={<ReferralRequestPage />} />
+
+          {/* Notifications & Admin */}
+          <Route path="/notifications" element={<NotificationsList />} />
+          <Route path="/AdminDashboard" element={<AdminDashboard />} />
+        </Route>
+
+        {/* ================= FALLBACK ================= */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
 
       <Footer />
     </div>
   );
 };
+
+/* ================= APP ROOT ================= */
 
 function App() {
   return (
