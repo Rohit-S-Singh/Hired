@@ -218,18 +218,29 @@ const user = contextUser || {
     setFeedbackForm({ rating: 5, comment: "" });
   };
 
-  const filteredMentors = mentors.filter(mentor => {
-    const matchesSearch = mentor.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      mentor.expertise?.some(e => e.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesExpertise = filterExpertise === "all" || 
-      mentor.expertise?.includes(filterExpertise);
-    
-    const matchesAvailability = filterAvailability === "all" || 
-      mentor.availability === filterAvailability;
+const filteredMentors = mentors.filter(mentor => {
+  const name = mentor.user?.name || "";
+  const search = searchTerm || "";
 
-    return matchesSearch && matchesExpertise && matchesAvailability;
-  });
+  const matchesSearch =
+    name.toLowerCase().includes(search.toLowerCase()) ||
+    mentor.expertise?.some(e =>
+      (e || "").toLowerCase().includes(search.toLowerCase())
+    );
+
+  const matchesExpertise =
+    filterExpertise === "all" ||
+    mentor.expertise?.includes(filterExpertise);
+
+  const matchesAvailability =
+    filterAvailability === "all" ||
+    mentor.availability === filterAvailability;
+
+  return matchesSearch && matchesExpertise && matchesAvailability;
+});
+
+
+
 
   const sortedMentors = [...filteredMentors].sort((a, b) => {
     switch (sortBy) {
@@ -331,7 +342,7 @@ const user = contextUser || {
                 />
               ) : (
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg border-2 border-blue-500">
-                  {getUserDisplayName().charAt(0).toUpperCase()}
+{(getUserDisplayName() || "?").charAt(0).toUpperCase()}
                 </div>
               )}
               <div className="hidden md:block">
@@ -357,7 +368,7 @@ const user = contextUser || {
                   />
                 ) : (
                   <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-3xl border-4 border-blue-500">
-                    {getUserDisplayName().charAt(0).toUpperCase()}
+{(getUserDisplayName() || "?").charAt(0).toUpperCase()}
                   </div>
                 )}
                 <div>
@@ -630,7 +641,7 @@ const user = contextUser || {
 
                     <div className="flex items-start gap-3 mb-4">
                       <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-xl shadow-lg">
-                        {mentor.user?.avatar || mentor.user?.name.charAt(0)}
+{mentor.user?.avatar || (mentor.user?.name || "?").charAt(0)}
                       </div>
                       <div className="flex-1">
                         <h3 className="font-bold text-lg text-gray-900">
@@ -791,7 +802,7 @@ const user = contextUser || {
           <div className="bg-white rounded-2xl max-w-2xl w-full p-8 shadow-2xl">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-xl">
-                {selectedMentor.user?.avatar || selectedMentor.user?.name.charAt(0)}
+{selectedMentor.user?.avatar || (selectedMentor.user?.name || "?").charAt(0)}
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Book Interview</h2>

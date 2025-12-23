@@ -1,169 +1,7 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { Search, MapPin, Briefcase, ExternalLink, Building2, Calendar, Filter, X, ChevronDown, TrendingUp, Clock, Bookmark, AlertCircle, Loader2, ArrowUpRight } from 'lucide-react';
 
-// Mock API Response - Normalized Job Data
-const mockJobsData = [
-  {
-    id: 1,
-    title: 'Software Engineer - Full Stack',
-    company: 'TechCorp Solutions',
-    companyLogo: 'TC',
-    location: 'Bangalore, India',
-    locationType: 'hybrid',
-    jobType: 'Full-Time',
-    source: 'Internal',
-    applyType: 'internal',
-    applyUrl: '/jobs/1/apply',
-    postedDate: '2025-12-15',
-    salary: '₹12-18 LPA',
-    skills: ['React', 'Node.js', 'MongoDB'],
-    experienceLevel: '0-2 years'
-  },
-  {
-    id: 2,
-    title: 'Frontend Developer Intern',
-    company: 'Startup Hub',
-    companyLogo: 'SH',
-    location: 'Remote',
-    locationType: 'remote',
-    jobType: 'Internship',
-    source: 'Internal',
-    applyType: 'internal',
-    applyUrl: '/jobs/2/apply',
-    postedDate: '2025-12-16',
-    salary: '₹15k-25k/month',
-    skills: ['JavaScript', 'React', 'CSS'],
-    experienceLevel: 'Fresher'
-  },
-  {
-    id: 3,
-    title: 'Product Manager - Early Career',
-    company: 'Google',
-    companyLogo: 'G',
-    location: 'Hyderabad, India',
-    locationType: 'onsite',
-    jobType: 'Full-Time',
-    source: 'LinkedIn',
-    applyType: 'external',
-    applyUrl: 'https://linkedin.com/jobs/google-pm-123',
-    postedDate: '2025-12-14',
-    salary: 'Competitive',
-    skills: ['Product Strategy', 'Analytics', 'Roadmap'],
-    experienceLevel: '0-1 years'
-  },
-  {
-    id: 4,
-    title: 'Data Analyst Intern',
-    company: 'Amazon',
-    companyLogo: 'A',
-    location: 'Mumbai, India',
-    locationType: 'hybrid',
-    jobType: 'Internship',
-    source: 'Naukri',
-    applyType: 'external',
-    applyUrl: 'https://naukri.com/amazon-data-analyst-456',
-    postedDate: '2025-12-17',
-    salary: '₹20k-30k/month',
-    skills: ['Python', 'SQL', 'Excel'],
-    experienceLevel: 'Fresher'
-  },
-  {
-    id: 5,
-    title: 'Backend Engineer',
-    company: 'Microsoft',
-    companyLogo: 'M',
-    location: 'Bangalore, India',
-    locationType: 'hybrid',
-    jobType: 'Full-Time',
-    source: 'Company Career Page',
-    applyType: 'external',
-    applyUrl: 'https://careers.microsoft.com/backend-eng-789',
-    postedDate: '2025-12-13',
-    salary: 'Competitive',
-    skills: ['Java', 'Spring Boot', 'Microservices'],
-    experienceLevel: '0-2 years'
-  },
-  {
-    id: 6,
-    title: 'UI/UX Designer Intern',
-    company: 'Design Studio Pro',
-    companyLogo: 'DS',
-    location: 'Remote',
-    locationType: 'remote',
-    jobType: 'Internship',
-    source: 'Internal',
-    applyType: 'internal',
-    applyUrl: '/jobs/6/apply',
-    postedDate: '2025-12-18',
-    salary: '₹12k-18k/month',
-    skills: ['Figma', 'User Research', 'Prototyping'],
-    experienceLevel: 'Fresher'
-  },
-  {
-    id: 7,
-    title: 'Full Stack Developer',
-    company: 'Meta',
-    companyLogo: 'FB',
-    location: 'Gurgaon, India',
-    locationType: 'onsite',
-    jobType: 'Full-Time',
-    source: 'LinkedIn',
-    applyType: 'external',
-    applyUrl: 'https://linkedin.com/jobs/meta-fullstack-999',
-    postedDate: '2025-12-12',
-    salary: 'Competitive',
-    skills: ['React', 'GraphQL', 'Python'],
-    experienceLevel: '0-2 years'
-  },
-  {
-    id: 8,
-    title: 'DevOps Engineer',
-    company: 'CloudTech Inc',
-    companyLogo: 'CT',
-    location: 'Pune, India',
-    locationType: 'hybrid',
-    jobType: 'Full-Time',
-    source: 'Internal',
-    applyType: 'internal',
-    applyUrl: '/jobs/8/apply',
-    postedDate: '2025-12-17',
-    salary: '₹10-15 LPA',
-    skills: ['AWS', 'Docker', 'Kubernetes'],
-    experienceLevel: '0-2 years'
-  },
-  {
-    id: 9,
-    title: 'Marketing Intern',
-    company: 'Flipkart',
-    companyLogo: 'FK',
-    location: 'Bangalore, India',
-    locationType: 'onsite',
-    jobType: 'Internship',
-    source: 'Naukri',
-    applyType: 'external',
-    applyUrl: 'https://naukri.com/flipkart-marketing-333',
-    postedDate: '2025-12-16',
-    salary: '₹18k-25k/month',
-    skills: ['Digital Marketing', 'SEO', 'Content'],
-    experienceLevel: 'Fresher'
-  },
-  {
-    id: 10,
-    title: 'Machine Learning Engineer',
-    company: 'AI Labs',
-    companyLogo: 'AI',
-    location: 'Remote',
-    locationType: 'remote',
-    jobType: 'Full-Time',
-    source: 'Internal',
-    applyType: 'internal',
-    applyUrl: '/jobs/10/apply',
-    postedDate: '2025-12-15',
-    salary: '₹15-22 LPA',
-    skills: ['Python', 'TensorFlow', 'ML'],
-    experienceLevel: '0-2 years'
-  }
-];
+
 
 // Context for Jobs State Management
 const JobsContext = createContext();
@@ -183,38 +21,51 @@ const JobsProvider = ({ children }) => {
   const [sortBy, setSortBy] = useState('recent');
 
   // Simulate API call
-  useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        setLoading(true);
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setJobs(mockJobsData);
-        setFilteredJobs(mockJobsData);
-        setError(null);
-      } catch (err) {
-        setError('Failed to load jobs. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
+useEffect(() => {
+  const fetchJobs = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    fetchJobs();
-  }, []);
+      const res = await fetch(
+        `${process.env.REACT_APP_BACKEND_BASE_URL}/api/jobs/random`
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch jobs");
+      }
+
+      const data = await res.json();
+
+      // backend should return { jobs: [...] }
+      setJobs(data.jobs || []);
+      setFilteredJobs(data.jobs || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchJobs();
+}, []);
+
 
   // Apply filters and search
   useEffect(() => {
     let result = [...jobs];
 
     // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(job => 
-        job.title.toLowerCase().includes(query) ||
-        job.company.toLowerCase().includes(query) ||
-        job.skills.some(skill => skill.toLowerCase().includes(query))
-      );
-    }
+  if (searchQuery) {
+  const query = searchQuery.toLowerCase();
+  result = result.filter(job =>
+    job.title.toLowerCase().includes(query) ||
+    job.companyName.toLowerCase().includes(query) ||
+    (job.skills || []).some(skill =>
+      skill.toLowerCase().includes(query)
+    )
+  );
+}
 
     // Job type filter
     if (filters.jobType.length > 0) {
@@ -223,7 +74,8 @@ const JobsProvider = ({ children }) => {
 
     // Location type filter
     if (filters.locationType.length > 0) {
-      result = result.filter(job => filters.locationType.includes(job.locationType));
+      result = result.filter(job => filters.locationType.includes(job.workMode?.toLowerCase())
+);
     }
 
     // Source filter
@@ -233,7 +85,9 @@ const JobsProvider = ({ children }) => {
 
     // Sorting
     if (sortBy === 'recent') {
-      result.sort((a, b) => new Date(b.postedDate) - new Date(a.postedDate));
+      result.sort((a, b) =>new Date(b.postedAt || b.createdAt) -
+new Date(a.postedAt || a.createdAt)
+);
     }
 
     setFilteredJobs(result);
@@ -612,7 +466,7 @@ const FilterSection = () => {
 };
 
 const JobCard = ({ job }) => {
-  const isExternal = job.applyType === 'external';
+const isExternal = !!job.applyLink;
   
   const getSourceBadgeColor = (source) => {
     if (source === 'Internal') return 'bg-green-100 text-green-800 border-green-200';
@@ -621,11 +475,14 @@ const JobCard = ({ job }) => {
     return 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
-  const getLocationTypeIcon = (type) => {
-    if (type === 'remote') return '🌍';
-    if (type === 'hybrid') return '🏢';
-    return '📍';
-  };
+const getLocationTypeIcon = (type) => {
+  if (!type) return '📍';
+  const mode = type.toLowerCase();
+  if (mode === 'remote') return '🌍';
+  if (mode === 'hybrid') return '🏢';
+  return '📍';
+};
+
 
   const daysAgo = (dateStr) => {
     const date = new Date(dateStr);
@@ -636,16 +493,13 @@ const JobCard = ({ job }) => {
     if (diffDays === 1) return 'Yesterday';
     return `${diffDays} days ago`;
   };
-
-  const handleApply = () => {
-    if (isExternal) {
-      window.open(job.applyUrl, '_blank', 'noopener,noreferrer');
-    } else {
-      // Internal application flow (placeholder)
-      alert(`Redirecting to internal application for: ${job.title}`);
-      // In production: window.location.href = job.applyUrl;
-    }
-  };
+const handleApply = () => {
+  if (job.applyLink) {
+    window.open(job.applyLink, '_blank', 'noopener,noreferrer');
+  } else {
+    alert(`Internal application coming soon for: ${job.title}`);
+  }
+};
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg hover:border-blue-300 transition-all duration-200">
@@ -653,17 +507,26 @@ const JobCard = ({ job }) => {
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-start gap-4 flex-1">
           <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center text-white font-bold flex-shrink-0">
-            {job.companyLogo}
+           {job.companyLogo ? (
+  <img
+    src={job.companyLogo}
+    alt={job.companyName}
+    className="w-12 h-12 object-contain rounded"
+  />
+) : (
+  <span>{job.companyName.charAt(0)}</span>
+)}
+
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-semibold text-gray-900 mb-1 hover:text-blue-600 cursor-pointer">
               {job.title}
             </h3>
-            <p className="text-gray-700 font-medium mb-2">{job.company}</p>
+            <p className="text-gray-700 font-medium mb-2">{job.companyName}</p>
             <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
               <span className="flex items-center gap-1">
                 <MapPin className="w-4 h-4" />
-                {getLocationTypeIcon(job.locationType)} {job.location}
+             {getLocationTypeIcon(job.workMode)} {job.location}
               </span>
               <span className="flex items-center gap-1">
                 <Briefcase className="w-4 h-4" />
@@ -671,7 +534,7 @@ const JobCard = ({ job }) => {
               </span>
               <span className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
-                {daysAgo(job.postedDate)}
+                {daysAgo(job.postedAt || job.createdAt)}
               </span>
             </div>
           </div>
@@ -839,7 +702,7 @@ const JobsList = () => {
       {/* Job Cards */}
       <div className="space-y-4">
         {filteredJobs.map(job => (
-          <JobCard key={job.id} job={job} />
+<JobCard key={job._id} job={job} />
         ))}
       </div>
 

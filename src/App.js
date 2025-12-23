@@ -55,6 +55,8 @@ import MentorDashboard from "./pages/interviews/MentorDashboard";
 import ScheduledInterviewPage from "./pages/interviews/ScheduledInterviewPage";
 import InterviewHistoryPage from "./pages/interviews/InterviewHistoryPage";
 import EditProfile from "./pages/Profile/EditProfile";
+import RandomJobs from "./pages/Jobs/RandomJobs";
+import SavedJobs from "./pages/Jobs/SavedJobs";
 // ================= ROUTES =================
 
 const AppRoutes = () => {
@@ -85,8 +87,9 @@ const AppRoutes = () => {
         <Route path="/profile-search" element={<Profilepage_search />} />
         <Route path="/company-search" element={<CompanyProfilePage />} />
 
-        <Route path="/jobs" element={<JobsListingPage />} />
-        <Route path="/job-details/:jobId" element={<JobDetails />} />
+         <Route path="/jobs" element={<RandomJobs />} />
+         <Route path="/SavedJobs" element={<SavedJobs />} />
+        <Route path="/job/:id" element={<JobDetails />} />
         <Route path="/events" element={<EventDiscoveryPlatform />} />
 
         {/* ================= PROTECTED ROUTES ================= */}
@@ -100,7 +103,7 @@ const AppRoutes = () => {
           <Route path="/history-interview" element={<InterviewHistory />} />
           <Route path="/find-mentor" element={<FindMentor />} />
      <Route path="/mentor/:mentorId" element={<MentorDetail />} />
-     <Route path="/ScheduledInterviewPage" element={<ScheduledInterviewPage />} />
+     <Route path="/scheduled-interviews" element={<ScheduledInterviewPage />} />
      <Route path="/InterviewHistoryPage" element={<InterviewHistoryPage />} />
  
           <Route
