@@ -30,7 +30,7 @@ const MentorDetail = () => {
 
   const fetchMentorDetail = async () => {
     try {
-      const res = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/mentors/${mentorId}`);
+      const res = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/mentors/mentor/${mentorId}`);
       const data = await res.json();
       if (data.success) setMentor(data.mentor);
     } catch (err) {
@@ -122,7 +122,9 @@ const MentorDetail = () => {
               </div>
               <div className="mt-4 md:mt-0 flex items-center space-x-2 text-slate-600">
                 <Briefcase className="w-5 h-5" />
-                <span className="text-lg font-semibold">{mentor.experience} years</span>
+<span className="text-lg font-semibold">
+  {mentor.experience ?? 0} years
+</span>
               </div>
             </div>
             
