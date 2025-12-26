@@ -28,7 +28,7 @@ import RandomJobs from "./pages/Jobs/RandomJobs";
 import SavedJobs from "./pages/Jobs/SavedJobs";
 
 /* ================= PROTECTED PAGES ================= */
-import Overview from "./Components/dashboard";
+import Overview from "./pages/dashboard/dashboard";
 import Upskill from "./Components/Upskill";
 import JobApplication from "./Components/ApplicationStatus";
 import Interview from "./pages/interviews/interviews";
@@ -39,7 +39,7 @@ import MentorDetail from "./pages/interviews/MentorDetail";
 import ScheduledInterviewPage from "./pages/interviews/ScheduledInterviewPage";
 import InterviewHistoryPage from "./pages/interviews/InterviewHistoryPage";
 import MentorDashboard from "./pages/interviews/MentorDashboard";
-
+import ChatPage from "./pages/chat/ChatPage";
 import Profile from "./pages/Profile/profile";
 import EditProfile from "./pages/Profile/EditProfile";
 
@@ -62,6 +62,7 @@ import NotificationsList from "./Components/NotificationsList";
 import PostJobPage from "./pages/Jobs/PostJob";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 
+import ProfileSetupForm from "./pages/dashboard/ProfileSetupForm";
 /* ================= ROUTES ================= */
 
 const AppRoutes = () => {
@@ -103,6 +104,9 @@ const AppRoutes = () => {
           <Route path="/upskill" element={<Upskill />} />
           <Route path="/application-status" element={<JobApplication />} />
 
+          {/* Chat */}
+          <Route path="/chat" element={<ChatPage />} />
+          
           {/* Interviews */}
           <Route path="/interviews" element={<Interview />} />
           <Route path="/new-interview" element={<InterviewWindow />} />
@@ -140,6 +144,12 @@ const AppRoutes = () => {
           {/* Notifications & Admin */}
           <Route path="/notifications" element={<NotificationsList />} />
           <Route path="/AdminDashboard" element={<AdminDashboard />} />
+
+
+          {/*pracrtice*/}
+          <Route path="/123" element={<ProfileSetupForm />} />
+
+
         </Route>
 
         {/* ================= FALLBACK ================= */}

@@ -8,7 +8,6 @@ import "react-toastify/dist/ReactToastify.css";
 export default function Signup() {
   const navigate = useNavigate();
 
-  const [accountType, setAccountType] = useState("Mentor Account");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,7 +15,7 @@ export default function Signup() {
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    // 🔐 Basic validation
+    // 🔐 Validation
     if (!email || !password) {
       toast.error("Email and password are required");
       return;
@@ -38,16 +37,15 @@ export default function Signup() {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_BASE_URL}/api/register`,
         {
-          userName: email.split("@")[0],
+          userName: email.split("@")[0], // backend expects userName
           email,
           password,
-          accountType
         }
       );
 
-      if (response.status === 200 && !response?.data?.errorMessage) {
+      if (response.status === 200 && response.data?.success) {
         toast.success("Registered successfully!");
-        setTimeout(() => navigate("/login"), 2000);
+        setTimeout(() => navigate("/login"), 1500);
       } else {
         toast.error(response?.data?.errorMessage || "Registration failed");
       }
@@ -71,11 +69,12 @@ export default function Signup() {
 
         <h2 className="text-2xl font-bold">Welcome to Hiredd!</h2>
         <p className="text-gray-500 mt-1 text-sm">
-          Register to create your account and start exploring new jobs.
+          Create your account to get started.
         </p>
 
         {/* Form */}
         <form className="mt-4 text-left" onSubmit={handleRegister}>
+          
           {/* Email */}
           <label className="block text-sm font-medium">Email</label>
           <input
@@ -98,36 +97,6 @@ export default function Signup() {
           <p className="text-xs text-gray-400 mt-1">
             Must be at least 8 characters
           </p>
-
-          {/* Account Type */}
-          <label className="block text-sm font-medium mt-3">
-            Select account type
-          </label>
-          <div className="flex gap-2 mt-1">
-            <button
-              type="button"
-              className={`flex-1 p-2 rounded-lg border transition ${
-                accountType === "Mentor Account"
-                  ? "bg-orange-100 border-orange-500"
-                  : "border-gray-300"
-              }`}
-              onClick={() => setAccountType("Mentor Account")}
-            >
-              Mentor Account
-            </button>
-
-            <button
-              type="button"
-              className={`flex-1 p-2 rounded-lg border transition ${
-                accountType === "Personal Account"
-                  ? "bg-gray-100 border-gray-500"
-                  : "border-gray-300"
-              }`}
-              onClick={() => setAccountType("Personal Account")}
-            >
-              Personal Account
-            </button>
-          </div>
 
           {/* Submit */}
           <button

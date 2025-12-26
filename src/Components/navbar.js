@@ -16,6 +16,11 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { isLoggedIn, user, setIsLoggedIn, setUser, loading } = useGlobalContext();
 
+  // Role and status checks
+  const isAdmin = user?.role === "admin";
+  const isRecruiterApproved = user?.recruiterStatus === "Approved";
+  const isMentorApproved = user?.mentorStatus === "Approved";
+
   const handleSignOut = () => {
     setIsLoggedIn(false);
     setUser(null);
@@ -59,7 +64,6 @@ const Navbar = () => {
     }
   };
 
-
   const fetchCoins = async () => {
     try {
       setLoadingNotif(true);
@@ -87,16 +91,18 @@ const Navbar = () => {
         setCoins(0);
       }
     } catch (error) {
-      console.error("Error fetching notifications:", error);
-      setNotifications([]);
+      console.error("Error fetching coins:", error);
+      setCoins(0);
     } finally {
       setLoadingNotif(false);
     }
   };
 
-
   useEffect(() => {
-    if (isLoggedIn) fetchNotifications();
+    if (isLoggedIn) {
+      fetchNotifications();
+      fetchCoins();
+    }
   }, [isLoggedIn]);
 
   useEffect(() => {
@@ -121,12 +127,29 @@ const Navbar = () => {
 
         {/* Nav Links */}
         <div className={`flex space-x-6 lg:flex ${isMenuOpen ? "block" : "hidden"} lg:block`}>
+          {/* Home & Overview - Always visible when logged in */}
           <Link to="/home" className="text-gray-700 text-sm hover:text-blue-500">Home</Link>
           <Link to="/overview" className="text-gray-700 text-sm hover:text-blue-500">Overview</Link>
-          {isLoggedIn && <Link to="/interviews" className="text-gray-700 text-sm hover:text-blue-500">Interviews</Link>}
-          {isLoggedIn && <Link to="/postjob" className="text-gray-700 text-sm hover:text-blue-500">Add Job</Link>}
-          {isLoggedIn && <Link to="/jobs" className="text-gray-700 text-sm hover:text-blue-500">Jobs</Link>}
-          {isLoggedIn && <Link to="/AdminDashboard" className="text-gray-700 text-sm hover:text-blue-500">Admin</Link>}
+          
+          {/* Interviews - Visible for all logged-in users (admin, user, mentor) */}
+          {isLoggedIn && (
+            <Link to="/interviews" className="text-gray-700 text-sm hover:text-blue-500">Interviews</Link>
+          )}
+          
+          {/* Add Job - Only for approved recruiters */}
+          {isLoggedIn && isRecruiterApproved && (
+            <Link to="/postjob" className="text-gray-700 text-sm hover:text-blue-500">Add Job</Link>
+          )}
+          
+          {/* Jobs - Visible for all logged-in users */}
+          {isLoggedIn && (
+            <Link to="/jobs" className="text-gray-700 text-sm hover:text-blue-500">Jobs</Link>
+          )}
+          
+          {/* Admin Dashboard - Only for admins */}
+          {isLoggedIn && isAdmin && (
+            <Link to="/AdminDashboard" className="text-gray-700 text-sm hover:text-blue-500">Admin</Link>
+          )}
         </div>
 
         {/* Right Section */}
@@ -140,9 +163,6 @@ const Navbar = () => {
                   className="h-12 w-12 flex items-center justify-center rounded-full border bg-white hover:bg-gray-100 relative"
                 >
                   <FaBell className="w-6 h-6 text-blue-500" />
-
-                  {/* Red Dot */}
-                  <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
 
                   {/* Number Badge */}
                   {hasUnreadNotifications && (
@@ -210,13 +230,12 @@ const Navbar = () => {
                     </div>
                   </div>
                 )}
-
               </div>
 
               {/* ================= COINS ================= */}
               <div className="h-12 w-12 flex flex-col items-center justify-center rounded-full border bg-white select-none cursor-default">
                 <FaCoins className="w-5 h-5 text-yellow-500" />
-<span className="text-xs font-semibold">{coins}</span>
+                <span className="text-xs font-semibold">{coins}</span>
               </div>
 
               {/* ================= PROFILE AVATAR ================= */}
@@ -235,7 +254,7 @@ const Navbar = () => {
                 {isDropdownOpen && !loading && (
                   <div
                     ref={dropdownRef}
-                    className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-md py-2"
+                    className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-md py-2 z-50"
                   >
                     <button
                       onClick={handleProfileClick}
@@ -270,8 +289,6 @@ const Navbar = () => {
             </>
           )}
         </div>
-
-
       </div>
     </nav>
   );
