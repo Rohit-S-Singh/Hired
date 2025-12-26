@@ -7,6 +7,7 @@ const GlobalContext = createContext();
 export const GlobalProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true); // spinner flag
 
   useEffect(() => {
@@ -32,10 +33,13 @@ export const GlobalProvider = ({ children }) => {
         );
 
         if (response.data.success && response.data.user) {
+          console.log("checking new thing", response.data.userProfile);
           setUser(response.data.user);
+          setUserProfile(response.data.userProfile);
           setIsLoggedIn(true);
         } else {
           setUser(null);
+          setUserProfile(null);
           setIsLoggedIn(false);
         }
       } catch (error) {
@@ -56,7 +60,7 @@ export const GlobalProvider = ({ children }) => {
 
   return (
     <GlobalContext.Provider
-      value={{ isLoggedIn, setIsLoggedIn, user, setUser, loading }}
+      value={{ isLoggedIn, setIsLoggedIn, user, userProfile, setUserProfile ,setUser, loading }}
     >
       {children}
     </GlobalContext.Provider>

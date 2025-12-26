@@ -61,6 +61,7 @@ import NotificationsList from "./Components/NotificationsList";
 
 import PostJobPage from "./pages/Jobs/PostJob";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
+import EditProfilePage from "./pages/Profile/edit1.jsx";
 
 import ProfileSetupForm from "./pages/dashboard/ProfileSetupForm";
 /* ================= ROUTES ================= */
@@ -119,7 +120,7 @@ const AppRoutes = () => {
 
           {/* Profile */}
           <Route path="/profile" element={<Profile />} />
-          <Route path="/edit-profile" element={<EditProfile />} />
+          <Route path="/edit-profile" element={<EditProfilePage />} />
 
           {/* Content */}
           <Route path="/blog" element={<Blog />} />
