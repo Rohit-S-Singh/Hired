@@ -28,9 +28,6 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("requests");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-
-
-  
   // =====================
   // Fetch pending requests
   // =====================
@@ -42,27 +39,15 @@ const AdminDashboard = () => {
       );
 
       if (data.success) {
-        const formattedRequests = [];
-
-        data.users.forEach((user) => {
-          // If mentor request is pending
-          if (user.mentorStatus === "Pending") {
-            formattedRequests.push({
-              _id: `${user._id}-mentor`, // unique per role
-              userId: user,
-              requestedRole: "mentor",
-            });
-          }
-
-          // If recruiter request is pending
-          if (user.recruiterStatus === "Pending") {
-            formattedRequests.push({
-              _id: `${user._id}-recruiter`, // unique per role
-              userId: user,
-              requestedRole: "recruiter",
-            });
-          }
-        });
+        // Map the requests array from API response
+        const formattedRequests = data.requests.map((request) => ({
+          _id: request._id,
+          userId: request.userId,
+          requestedRole: "mentor", // Based on your API structure, it's a mentor request
+          status: request.status,
+          createdAt: request.createdAt,
+          mentorId: request.mentorId,
+        }));
 
         setRequests(formattedRequests);
       } else {
@@ -103,7 +88,7 @@ const AdminDashboard = () => {
       toast.dismiss();
       toast.success(`✅ Request ${action}ed successfully!`);
 
-      // Remove only the processed row
+      // Remove the processed request
       setRequests((prev) => prev.filter((req) => req._id !== id));
     } catch (err) {
       toast.dismiss();
@@ -130,6 +115,19 @@ const AdminDashboard = () => {
       return matchesFilter && matchesSearch;
     });
   }, [requests, filter, search]);
+
+  // =====================
+  // Format date helper
+  // =====================
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
 
   // =====================
   // Sidebar items
@@ -212,7 +210,7 @@ const AdminDashboard = () => {
               onClick={fetchRequests}
               className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 shadow"
             >
-              <AiOutlineReload className="animate-spin-slow" />
+              <AiOutlineReload />
               Refresh
             </button>
 
@@ -259,6 +257,7 @@ const AdminDashboard = () => {
                     <th className="p-4">Name</th>
                     <th className="p-4">Email</th>
                     <th className="p-4">Requested Role</th>
+                    <th className="p-4">Request Date</th>
                     <th className="p-4 text-center">Actions</th>
                   </tr>
                 </thead>
@@ -267,7 +266,7 @@ const AdminDashboard = () => {
                   {loading ? (
                     <tr>
                       <td
-                        colSpan="4"
+                        colSpan="5"
                         className="p-6 text-center text-gray-500"
                       >
                         <div className="animate-pulse">Loading requests...</div>
@@ -276,7 +275,7 @@ const AdminDashboard = () => {
                   ) : filteredRequests.length === 0 ? (
                     <tr>
                       <td
-                        colSpan="4"
+                        colSpan="5"
                         className="p-6 text-center text-gray-500"
                       >
                         No matching requests found.
@@ -296,11 +295,14 @@ const AdminDashboard = () => {
                         <td className="p-4 capitalize text-gray-900">
                           {req.requestedRole}
                         </td>
+                        <td className="p-4 text-gray-600">
+                          {formatDate(req.createdAt)}
+                        </td>
                         <td className="p-4 text-center space-x-3">
                           <button
                             disabled={processingId === req._id}
                             onClick={() => handleAction(req._id, "accept")}
-                            className={`px-4 py-1 rounded flex items-center gap-2 justify-center inline-block ${
+                            className={`px-4 py-1 rounded inline-flex items-center gap-2 justify-center ${
                               processingId === req._id
                                 ? "bg-green-300 opacity-50 cursor-not-allowed"
                                 : "bg-green-500 hover:bg-green-600 text-white"
@@ -311,7 +313,7 @@ const AdminDashboard = () => {
                           <button
                             disabled={processingId === req._id}
                             onClick={() => handleAction(req._id, "decline")}
-                            className={`px-4 py-1 rounded flex items-center gap-2 justify-center inline-block ${
+                            className={`px-4 py-1 rounded inline-flex items-center gap-2 justify-center ${
                               processingId === req._id
                                 ? "bg-red-300 opacity-50 cursor-not-allowed"
                                 : "bg-red-500 hover:bg-red-600 text-white"

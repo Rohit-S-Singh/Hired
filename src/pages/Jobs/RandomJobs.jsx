@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import JobCard from "./JobCard";
 import axios from "axios";
 import { useGlobalContext } from "../AUTH/GlobalContext";
-import { RefreshCw, Briefcase, TrendingUp, Filter, Search, MapPin, Building2, Clock, Grid3x3, List, ChevronDown, X, Bookmark } from "lucide-react";
+import { RefreshCw, Briefcase, TrendingUp, Filter, Search, Building2, Clock, Grid3x3, List, X, Bookmark } from "lucide-react";
 
 const SaveButton = ({ jobId, onSaveSuccess }) => {
   const { user } = useGlobalContext();
@@ -23,8 +23,8 @@ const saveJob = async () => {
     await axios.post(
       `${process.env.REACT_APP_BACKEND_BASE_URL}/api/jobs/save`,
       {
-        userId: user._id,   // ✅ sent manually
-        jobId: jobId        // ✅ sent manually
+        userId: user._id,
+        jobId: jobId
       },
       {
         headers: {
@@ -404,7 +404,7 @@ const RandomJobs = () => {
                 {filteredJobs.slice(0, displayCount).map((job, index) => (
                   <div
                     key={job._id}
-                    className="animate-fade-in bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
+                    className="group animate-fade-in bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer"
                     style={{ animationDelay: `${index * 0.03}s` }}
                   >
                     <JobCard job={job} viewMode={viewMode} />

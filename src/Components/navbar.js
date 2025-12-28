@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useRef, Fragment } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaGoogle, FaMicrosoft, FaVideo, FaBell, FaCoins } from "react-icons/fa";
-import { Dialog, Transition } from "@headlessui/react";
+import { FaBell, FaCoins } from "react-icons/fa";
 import { useGlobalContext } from "../pages/AUTH/GlobalContext";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [coins, setCoins] = useState(0);
@@ -18,8 +16,9 @@ const Navbar = () => {
 
   // Role and status checks
   const isAdmin = user?.role === "admin";
+  const isUser = user?.role === "user";
+  const isMentorApproved = user?.mentorStatus === "approved";
   const isRecruiterApproved = user?.recruiterStatus === "Approved";
-  const isMentorApproved = user?.mentorStatus === "Approved";
 
   const handleSignOut = () => {
     setIsLoggedIn(false);
@@ -123,32 +122,92 @@ const Navbar = () => {
     <nav className="bg-white shadow-sm p-4 relative">
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo */}
-        <img src="/hired.png" alt="Hired" className="h-14" />
+        <Link to="/home">
+          <img src="/hired.png" alt="Hired" className="h-14 cursor-pointer" />
+        </Link>
+
+        {/* Mobile Menu Toggle */}
+        <button
+          className="lg:hidden text-gray-700"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </button>
 
         {/* Nav Links */}
-        <div className={`flex space-x-6 lg:flex ${isMenuOpen ? "block" : "hidden"} lg:block`}>
-          {/* Home & Overview - Always visible when logged in */}
-          <Link to="/home" className="text-gray-700 text-sm hover:text-blue-500">Home</Link>
-          <Link to="/overview" className="text-gray-700 text-sm hover:text-blue-500">Overview</Link>
-          
-          {/* Interviews - Visible for all logged-in users (admin, user, mentor) */}
+        <div
+          className={`${
+            isMenuOpen ? "block" : "hidden"
+          } lg:flex lg:space-x-6 absolute lg:relative top-full left-0 right-0 lg:top-auto bg-white lg:bg-transparent shadow-lg lg:shadow-none p-4 lg:p-0 z-40`}
+        >
           {isLoggedIn && (
-            <Link to="/interviews" className="text-gray-700 text-sm hover:text-blue-500">Interviews</Link>
-          )}
-          
-          {/* Add Job - Only for approved recruiters */}
-          {isLoggedIn && isRecruiterApproved && (
-            <Link to="/postjob" className="text-gray-700 text-sm hover:text-blue-500">Add Job</Link>
-          )}
-          
-          {/* Jobs - Visible for all logged-in users */}
-          {isLoggedIn && (
-            <Link to="/jobs" className="text-gray-700 text-sm hover:text-blue-500">Jobs</Link>
-          )}
-          
-          {/* Admin Dashboard - Only for admins */}
-          {isLoggedIn && isAdmin && (
-            <Link to="/AdminDashboard" className="text-gray-700 text-sm hover:text-blue-500">Admin</Link>
+            <>
+              {/* Common links for all logged-in users */}
+              <Link
+                to="/home"
+                className="block lg:inline-block text-gray-700 text-sm hover:text-blue-500 py-2 lg:py-0"
+              >
+                Home
+              </Link>
+              <Link
+                to="/overview"
+                className="block lg:inline-block text-gray-700 text-sm hover:text-blue-500 py-2 lg:py-0"
+              >
+                Overview
+              </Link>
+              <Link
+                to="/interviews"
+                className="block lg:inline-block text-gray-700 text-sm hover:text-blue-500 py-2 lg:py-0"
+              >
+                Interviews
+              </Link>
+              <Link
+                to="/jobs"
+                className="block lg:inline-block text-gray-700 text-sm hover:text-blue-500 py-2 lg:py-0"
+              >
+                Jobs
+              </Link>
+
+              {/* Admin Dashboard - Only for admin role */}
+              {isAdmin && (
+                <Link
+                  to="/AdminDashboard"
+                  className="block lg:inline-block text-gray-700 text-sm hover:text-blue-500 py-2 lg:py-0"
+                >
+                  Admin
+                </Link>
+              )}
+
+              {/* Mentor Dashboard & Add Job - Only for approved mentors */}
+              {isMentorApproved && (
+                <>
+                  <Link
+                    to="/MentorDashboard-interview"
+                    className="block lg:inline-block text-gray-700 text-sm hover:text-blue-500 py-2 lg:py-0"
+                  >
+                    Mentor Dashboard
+                  </Link>
+                  <Link
+                    to="/post-job"
+                    className="block lg:inline-block text-gray-700 text-sm hover:text-blue-500 py-2 lg:py-0"
+                  >
+                    Add Job
+                  </Link>
+                </>
+              )}
+            </>
           )}
         </div>
 
@@ -181,7 +240,9 @@ const Navbar = () => {
                   >
                     {/* Header */}
                     <div className="flex items-center justify-between px-5 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-t-xl">
-                      <h3 className="text-sm font-semibold tracking-wide">Notifications</h3>
+                      <h3 className="text-sm font-semibold tracking-wide">
+                        Notifications
+                      </h3>
                       <button
                         onClick={fetchNotifications}
                         className="text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded transition"
@@ -193,10 +254,16 @@ const Navbar = () => {
                     {/* List */}
                     <div className="max-h-96 overflow-y-auto divide-y divide-gray-100 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                       {loadingNotif ? (
-                        <div className="p-6 text-center text-gray-500">Loading...</div>
+                        <div className="p-6 text-center text-gray-500">
+                          Loading...
+                        </div>
                       ) : notifications.length === 0 ? (
                         <div className="p-6 text-center text-gray-400">
-                          <img src="/empty-bell.png" alt="" className="h-16 mx-auto mb-3 opacity-70" />
+                          <img
+                            src="/empty-bell.png"
+                            alt=""
+                            className="h-16 mx-auto mb-3 opacity-70"
+                          />
                           No notifications yet
                         </div>
                       ) : (
