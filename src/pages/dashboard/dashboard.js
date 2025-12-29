@@ -6,7 +6,6 @@ import {
 import { FaEnvelope, FaBriefcase, FaUserCheck, FaChartLine } from "react-icons/fa";
 import axios from 'axios';
 
-import JobCategories from '../../Components/exploreJobs.js';
 import { useGlobalContext } from '../AUTH/GlobalContext.js';
 import FeatureHighlights from '../../Components/FeatureHighlights.js';
 import ProfileSetupForm from './ProfileSetupForm.jsx';
@@ -22,6 +21,8 @@ const Dashboard = () => {
   const [applications, setApplications] = useState([]);
   const [coldEmailsSent, setColdEmailsSent] = useState(0);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [jobs, setJobs] = useState([]);
+  const [loadingJobs, setLoadingJobs] = useState(true);
 
   const header = {
     headers: {
@@ -58,6 +59,35 @@ const Dashboard = () => {
     .catch(err => console.log(err));
 
   }, [user]);
+
+  // Fetch jobs from API
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        setLoadingJobs(true);
+        const token = localStorage.getItem('jwtToken');
+        
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_BASE_URL}/api/jobs/random`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (response.data.success) {
+          setJobs(response.data.jobs || []);
+        }
+      } catch (error) {
+        console.error('Error fetching jobs:', error);
+      } finally {
+        setLoadingJobs(false);
+      }
+    };
+
+    fetchJobs();
+  }, []);
 
   // Handle profile setup completion
   const handleProfileSetupComplete = async (data) => {
@@ -170,7 +200,67 @@ const Dashboard = () => {
       </div>
 
       <FeatureHighlights />
-      <JobCategories />
+
+      {/* Jobs Section */}
+      <div className="mt-8 px-4">
+        <h2 className="text-2xl font-bold mb-6 text-center">Explore Jobs</h2>
+        
+        {loadingJobs ? (
+          <div className="text-center py-8">
+            <p className="text-gray-600">Loading jobs...</p>
+          </div>
+        ) : jobs.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-600">No jobs available at the moment</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {jobs.slice(0, 6).map((job) => (
+              <div
+                key={job._id}
+                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border border-gray-200"
+              >
+                <div className="mb-4">
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">
+                    {job.title}
+                  </h3>
+                  
+                  {job.company && (
+                    <p className="text-gray-600 font-medium mb-1">{job.company}</p>
+                  )}
+                  
+                  {job.location && (
+                    <p className="text-sm text-gray-500">📍 {job.location}</p>
+                  )}
+                </div>
+                
+                {job.description && (
+                  <p className="text-sm text-gray-700 mb-4 line-clamp-3">
+                    {job.description}
+                  </p>
+                )}
+                
+                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                  {job.salary && (
+                    <span className="text-sm font-semibold text-green-600">
+                      {job.salary}
+                    </span>
+                  )}
+                  
+                  <button
+                    onClick={() => {
+                      console.log('Apply to job:', job._id);
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Apply Now
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
     </div>
   );

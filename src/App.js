@@ -34,8 +34,8 @@ import JobApplication from "./Components/ApplicationStatus";
 import Interview from "./pages/interviews/interviews";
 import InterviewWindow from "./Components/InterviewWindow";
 import InterviewHistory from "./pages/interviews/InterviewHistory";
-import FindMentor from "./pages/interviews/FindMentor";
-import MentorDetail from "./pages/interviews/MentorDetail";
+import FindMentor from "./pages/mentor/FindMentor.js";
+import MentorDetail from "./pages/mentor/MentorDetail.jsx";
 import ScheduledInterviewPage from "./pages/interviews/ScheduledInterviewPage";
 import InterviewHistoryPage from "./pages/interviews/InterviewHistoryPage";
 import MentorDashboard from "./pages/interviews/MentorDashboard";
@@ -58,11 +58,11 @@ import ReferralRequestPage from "./Components/ReferralRequestPage";
 import RecruitersList from "./Components/RecruitersList";
 import RecruiterProfile from "./Components/RecruiterProfile";
 import NotificationsList from "./Components/NotificationsList";
-
+import BecomeMentorForm from "./pages/mentor/mentor-form.jsx";
 import PostJobPage from "./pages/Jobs/PostJob";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import EditProfilePage from "./pages/Profile/edit1.jsx";
-
+import InterviewReadiness from "./pages/interviews/FinalInterview.jsx";
 import ProfileSetupForm from "./pages/dashboard/ProfileSetupForm";
 /* ================= ROUTES ================= */
 
@@ -109,9 +109,11 @@ const AppRoutes = () => {
           <Route path="/chat" element={<ChatPage />} />
           
           {/* Interviews */}
-          <Route path="/interviews" element={<Interview />} />
+          {/* <Route path="/interviews" element={<Interview />} /> */}
+          <Route path="/interviews" element={<InterviewReadiness />} />
           <Route path="/new-interview" element={<InterviewWindow />} />
           <Route path="/history-interview" element={<InterviewHistory />} />
+          <Route path="/BecomeMentorForm" element={<BecomeMentorForm />} />
           <Route path="/find-mentor" element={<FindMentor />} />
           <Route path="/mentor/:mentorId" element={<MentorDetail />} />
           <Route path="/scheduled-interviews" element={<ScheduledInterviewPage />} />
