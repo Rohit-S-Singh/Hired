@@ -33,11 +33,7 @@ useEffect(() => {
         if (res.status === 200 || data.success) {
           console.log("✅ Token valid, user logged in automatically");
           setIsLoggedIn(true);
-          setUser({
-            username: data.user.name,
-            email: data.user.email,
-            picture: data.user.avatar, // <-- Set avatar as picture
-          });   
+          setUser(res.data.user);   
           navigate("/overview");
         } else {
           console.warn("⚠️ Invalid or expired token");

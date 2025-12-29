@@ -55,7 +55,7 @@ export const GlobalProvider = ({ children }) => {
   }, []);
 
 
-  console.log(user);
+  console.log("user from GlobalContext:", user);
   
 
   return (

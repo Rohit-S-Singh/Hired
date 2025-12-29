@@ -64,6 +64,8 @@ import AdminDashboard from "./pages/Admin/AdminDashboard";
 import EditProfilePage from "./pages/Profile/edit1.jsx";
 import InterviewReadiness from "./pages/interviews/FinalInterview.jsx";
 import ProfileSetupForm from "./pages/dashboard/ProfileSetupForm";
+import AnalyticsDashboard from "./pages/Admin/analytics.jsx";
+import AllUsers from "./pages/Admin/AllUsers.jsx";
 /* ================= ROUTES ================= */
 
 const AppRoutes = () => {
@@ -147,6 +149,8 @@ const AppRoutes = () => {
           {/* Notifications & Admin */}
           <Route path="/notifications" element={<NotificationsList />} />
           <Route path="/AdminDashboard" element={<AdminDashboard />} />
+          <Route path="/AllUsers" element={<AllUsers />} />
+          <Route path="/AnalyticsDashboard" element={<AnalyticsDashboard />} />
 
 
           {/*pracrtice*/}

@@ -108,10 +108,10 @@ const Dashboard = () => {
   };
 
   // Show ProfileSetupForm if userType is "None"
-  if (showProfileSetup) {
+if (showProfileSetup && user?._id) {
     return (
       <ProfileSetupForm
-        userId={user?._id}
+        userId={user._id}
         onComplete={handleProfileSetupComplete}
       />
     );
