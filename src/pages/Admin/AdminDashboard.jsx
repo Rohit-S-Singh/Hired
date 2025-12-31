@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   AiOutlineUser,
@@ -18,51 +19,128 @@ export default function AnalyticsDashboard() {
   const [loading, setLoading] = useState(false);
   const [timeRange, setTimeRange] = useState(28);
   const [graphTimeRange, setGraphTimeRange] = useState('week');
+  const [selectedMetric, setSelectedMetric] = useState('all');
+  const navigate = useNavigate();
   
-  // Analytics data state
   const [analytics, setAnalytics] = useState({
-    uniqueVisitors: { value: 3, change: 100 },
-    usersRegistered: { value: 4, change: 100 },
-    interviewsTaken: { value: 7, change: 100 },
-    coldEmailsSent: { value: 0, change: -100 },
+    uniqueVisitors: { value: 0, change: 0 },
+    usersRegistered: { value: 0, change: 0 },
+    interviewsTaken: { value: 0, change: 0 },
+    coldEmailsSent: { value: 0, change: 0 },
     recruitersRegistered: { value: 0, change: 0 },
-    mentorsRegistered: { value: 1, change: 100 },
-    activeJobs: { value: 119, change: 0 }
+    mentorsRegistered: { value: 0, change: 0 },
+    activeJobs: { value: 0, change: 0 }
   });
 
-  // Graph data state - simulating time-series data
-  const [graphData, setGraphData] = useState([]);
+  const [trendData, setTrendData] = useState({});
 
-  const generateGraphData = () => {
-    const points = graphTimeRange === 'day' ? 24 : graphTimeRange === 'week' ? 7 : 30;
-    const baseValue = analytics.uniqueVisitors.value;
+  // Generate realistic trend data based on current value and change percentage
+  const generateTrendData = (currentValue, changePercent, points) => {
+    if (currentValue === 0) return Array(points).fill(0);
+    
     const data = [];
+    const previousValue = changePercent !== 0 
+      ? currentValue / (1 + changePercent / 100)
+      : currentValue;
     
     for (let i = 0; i < points; i++) {
-      // Create realistic variation around the base value
-      const variance = Math.random() * 0.4 - 0.2; // ±20% variance
-      const trend = (i / points) * analytics.uniqueVisitors.change / 100;
-      const value = Math.max(0, Math.floor(baseValue * (1 + variance + trend)));
-      data.push(value);
+      const progress = i / (points - 1);
+      const value = previousValue + (currentValue - previousValue) * progress;
+      const noise = (Math.random() - 0.5) * currentValue * 0.1;
+      data.push(Math.max(0, Math.round(value + noise)));
     }
     
+    data[points - 1] = currentValue;
     return data;
   };
 
+  // Calculate overall performance score based on percentage changes
+  const calculateOverallPerformance = () => {
+    const changes = [
+      analytics.uniqueVisitors.change,
+      analytics.usersRegistered.change,
+      analytics.interviewsTaken.change,
+      analytics.coldEmailsSent.change,
+      analytics.recruitersRegistered.change,
+      analytics.mentorsRegistered.change,
+      analytics.activeJobs.change
+    ];
+
+    // Filter out zero values to avoid skewing the average
+    const validChanges = changes.filter(change => change !== 0);
+    
+    if (validChanges.length === 0) return 0;
+
+    // Calculate average change and convert to 0-100 scale
+    const avgChange = validChanges.reduce((sum, change) => sum + change, 0) / validChanges.length;
+    
+    // Map the change to a 0-100 scale (assuming -100 to +100 range maps to 0-100)
+    const performanceScore = Math.max(0, Math.min(100, 50 + (avgChange / 2)));
+    
+    return Math.round(performanceScore);
+  };
+
+  const fetchAnalytics = async () => {
+    try {
+      setLoading(true);
+
+      const token = localStorage.getItem("jwtToken");
+
+      const res = await fetch(
+        `${process.env.REACT_APP_BACKEND_BASE_URL}/api/Admin/analytics`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setAnalytics(data.analytics);
+      }
+    } catch (error) {
+      console.error("Failed to fetch analytics", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    setGraphData(generateGraphData());
+    fetchAnalytics();
+  }, [timeRange]);
+
+  useEffect(() => {
+    if (analytics.uniqueVisitors.value === 0) return;
+
+    const points = graphTimeRange === 'day' ? 24 : graphTimeRange === 'week' ? 7 : 30;
+    
+    const newTrendData = {
+      uniqueVisitors: generateTrendData(analytics.uniqueVisitors.value, analytics.uniqueVisitors.change, points),
+      usersRegistered: generateTrendData(analytics.usersRegistered.value, analytics.usersRegistered.change, points),
+      interviewsTaken: generateTrendData(analytics.interviewsTaken.value, analytics.interviewsTaken.change, points),
+      coldEmailsSent: generateTrendData(analytics.coldEmailsSent.value, analytics.coldEmailsSent.change, points),
+      recruitersRegistered: generateTrendData(analytics.recruitersRegistered.value, analytics.recruitersRegistered.change, points),
+      mentorsRegistered: generateTrendData(analytics.mentorsRegistered.value, analytics.mentorsRegistered.change, points),
+      activeJobs: generateTrendData(analytics.activeJobs.value, analytics.activeJobs.change, points)
+    };
+    
+    setTrendData(newTrendData);
   }, [analytics, graphTimeRange]);
 
   const handleCardClick = (metricType) => {
-    console.log(`Navigate to: /analytics/${metricType}`);
+    setSelectedMetric(metricType);
   };
 
-  const StatCard = ({ title, value, change, icon: Icon, iconColor, trend, onClick }) => (
+  const StatCard = ({ title, value, change, icon: Icon, iconColor, trend, onClick, metricKey, isSelected }) => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       onClick={onClick}
-      className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-6 border border-gray-700 hover:border-gray-600 transition-all shadow-lg cursor-pointer hover:scale-105 hover:shadow-2xl"
+      className={`bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-6 border transition-all shadow-lg cursor-pointer hover:scale-105 hover:shadow-2xl ${
+        isSelected ? 'border-blue-500 ring-2 ring-blue-500' : 'border-gray-700 hover:border-gray-600'
+      }`}
     >
       <div className="flex items-start justify-between mb-4">
         <div className={`p-3 rounded-lg ${iconColor}`}>
@@ -90,7 +168,6 @@ export default function AnalyticsDashboard() {
     </motion.div>
   );
 
-  // Generate SVG path from data points
   const generatePath = (data, width = 800, height = 200) => {
     if (!data || data.length === 0) return '';
     
@@ -101,12 +178,10 @@ export default function AnalyticsDashboard() {
     
     const points = data.map((value, index) => {
       const x = index * stepX;
-      // Invert Y because SVG coordinates start from top
       const y = height - ((value - minValue) / range) * height * 0.8 - height * 0.1;
       return { x, y };
     });
     
-    // Create smooth curve using quadratic bezier curves
     let path = `M ${points[0].x} ${points[0].y}`;
     
     for (let i = 0; i < points.length - 1; i++) {
@@ -123,15 +198,9 @@ export default function AnalyticsDashboard() {
     return path;
   };
 
-  const generateFillPath = (data, width = 800, height = 200) => {
-    const mainPath = generatePath(data, width, height);
-    return `${mainPath} L ${width} ${height} L 0 ${height} Z`;
-  };
-
-  // Generate axis labels based on time range
   const getXAxisLabels = () => {
     if (graphTimeRange === 'day') {
-      return ['12 AM', '4 AM', '8 AM', '12 PM', '4 PM', '8 PM'];
+      return ['12AM', '4AM', '8AM', '12PM', '4PM', '8PM', '11PM'];
     } else if (graphTimeRange === 'week') {
       return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     } else {
@@ -139,18 +208,103 @@ export default function AnalyticsDashboard() {
     }
   };
 
-  const getYAxisMax = () => {
-    if (graphData.length === 0) return 0;
-    return Math.max(...graphData);
+  const metricConfigs = {
+    uniqueVisitors: { color: '#8B5CF6', label: 'Unique Visitors' },
+    usersRegistered: { color: '#3B82F6', label: 'Users Registered' },
+    interviewsTaken: { color: '#10B981', label: 'Interviews Taken' },
+    coldEmailsSent: { color: '#F59E0B', label: 'Cold Emails Sent' },
+    recruitersRegistered: { color: '#6366F1', label: 'Recruiters' },
+    mentorsRegistered: { color: '#EC4899', label: 'Mentors' },
+    activeJobs: { color: '#06B6D4', label: 'Active Jobs' }
+  };
+
+  const renderGraph = () => {
+    if (selectedMetric === 'all') {
+      return (
+        <>
+          {Object.keys(metricConfigs).map((key) => {
+            const data = trendData[key] || [];
+            if (data.length === 0) return null;
+            
+            return (
+              <g key={key}>
+                <path
+                  d={generatePath(data)}
+                  fill="none"
+                  stroke={metricConfigs[key].color}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  opacity="0.8"
+                />
+              </g>
+            );
+          })}
+        </>
+      );
+    } else if (selectedMetric === 'performance') {
+      const performanceData = trendData.uniqueVisitors?.map((_, index) => {
+        let score = 0;
+        Object.keys(trendData).forEach(key => {
+          score += (trendData[key][index] || 0) * 0.14;
+        });
+        return Math.round(score);
+      }) || [];
+
+      return (
+        <>
+          <defs>
+            <linearGradient id="performanceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.4"/>
+              <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.05"/>
+            </linearGradient>
+          </defs>
+          <path
+            d={generatePath(performanceData) + ` L 800 200 L 0 200 Z`}
+            fill="url(#performanceGradient)"
+          />
+          <path
+            d={generatePath(performanceData)}
+            fill="none"
+            stroke="#3B82F6"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </>
+      );
+    } else {
+      const data = trendData[selectedMetric] || [];
+      return (
+        <>
+          <defs>
+            <linearGradient id="singleGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor={metricConfigs[selectedMetric].color} stopOpacity="0.4"/>
+              <stop offset="100%" stopColor={metricConfigs[selectedMetric].color} stopOpacity="0.05"/>
+            </linearGradient>
+          </defs>
+          <path
+            d={generatePath(data) + ` L 800 200 L 0 200 Z`}
+            fill="url(#singleGradient)"
+          />
+          <path
+            d={generatePath(data)}
+            fill="none"
+            stroke={metricConfigs[selectedMetric].color}
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </>
+      );
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Top Navigation Bar */}
       <nav className="bg-white shadow-md border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
-            {/* Logo & Title */}
             <div className="flex items-center gap-4">
               <div className="bg-gradient-to-br from-blue-600 to-blue-700 w-10 h-10 rounded-lg flex items-center justify-center shadow-lg">
                 <span className="text-white font-bold text-xl">H</span>
@@ -163,7 +317,6 @@ export default function AnalyticsDashboard() {
               </div>
             </div>
 
-            {/* Navigation Buttons */}
             <div className="flex items-center gap-3">
               <button
                 onClick={() => console.log('Navigate to AdminDashboard')}
@@ -174,7 +327,7 @@ export default function AnalyticsDashboard() {
               </button>
 
               <button
-                onClick={() => console.log('Navigate to AllUsers')}
+                onClick={() => navigate('/AllUsers')}
                 className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg shadow-md transition-all duration-200 font-medium"
               >
                 <AiOutlineUser className="text-lg" />
@@ -182,14 +335,13 @@ export default function AnalyticsDashboard() {
               </button>
 
               <button
-                onClick={() => setGraphData(generateGraphData())}
+                onClick={fetchAnalytics}
                 className="flex items-center gap-2 px-5 py-2.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-lg shadow-sm transition-all duration-200 font-medium"
               >
                 <AiOutlineReload className="text-lg" />
                 <span>Refresh</span>
               </button>
 
-              {/* Admin Profile */}
               <div className="flex items-center gap-3 bg-gray-100 px-4 py-2.5 rounded-lg border border-gray-200">
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold shadow-md">
                   A
@@ -205,9 +357,7 @@ export default function AnalyticsDashboard() {
         </div>
       </nav>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Page Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
@@ -219,7 +369,6 @@ export default function AnalyticsDashboard() {
               </p>
             </div>
 
-            {/* Time Range Selector */}
             <div className="flex gap-2 bg-white rounded-lg p-1 shadow-md border border-gray-200">
               <button
                 onClick={() => setTimeRange(7)}
@@ -255,22 +404,17 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
 
-        {/* Stats Grid - Row 1 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           <StatCard
             title="Unique Visitors"
-            value={analytics.uniqueVisitors.value ?? 0}
+            value={analytics.uniqueVisitors.value}
             change={analytics.uniqueVisitors.change}
-            trend={
-              analytics.uniqueVisitors.change === 0
-                ? "neutral"
-                : analytics.uniqueVisitors.change > 0
-                ? "up"
-                : "down"
-            }
+            trend={analytics.uniqueVisitors.change > 0 ? 'up' : analytics.uniqueVisitors.change < 0 ? 'down' : 'neutral'}
             icon={AiOutlineEye}
             iconColor="bg-gradient-to-br from-purple-500 to-purple-600"
             onClick={() => handleCardClick('uniqueVisitors')}
+            metricKey="uniqueVisitors"
+            isSelected={selectedMetric === 'uniqueVisitors'}
           />
           
           <StatCard
@@ -281,6 +425,8 @@ export default function AnalyticsDashboard() {
             icon={AiOutlineUserAdd}
             iconColor="bg-gradient-to-br from-blue-500 to-blue-600"
             onClick={() => handleCardClick('usersRegistered')}
+            metricKey="usersRegistered"
+            isSelected={selectedMetric === 'usersRegistered'}
           />
           
           <StatCard
@@ -291,6 +437,8 @@ export default function AnalyticsDashboard() {
             icon={AiOutlineVideoCamera}
             iconColor="bg-gradient-to-br from-green-500 to-green-600"
             onClick={() => handleCardClick('interviewsTaken')}
+            metricKey="interviewsTaken"
+            isSelected={selectedMetric === 'interviewsTaken'}
           />
           
           <StatCard
@@ -301,10 +449,11 @@ export default function AnalyticsDashboard() {
             icon={AiOutlineMail}
             iconColor="bg-gradient-to-br from-orange-500 to-orange-600"
             onClick={() => handleCardClick('coldEmailsSent')}
+            metricKey="coldEmailsSent"
+            isSelected={selectedMetric === 'coldEmailsSent'}
           />
         </div>
 
-        {/* Stats Grid - Row 2 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <StatCard
             title="Recruiters Registered"
@@ -314,6 +463,8 @@ export default function AnalyticsDashboard() {
             icon={AiOutlineIdcard}
             iconColor="bg-gradient-to-br from-indigo-500 to-indigo-600"
             onClick={() => handleCardClick('recruitersRegistered')}
+            metricKey="recruitersRegistered"
+            isSelected={selectedMetric === 'recruitersRegistered'}
           />
           
           <StatCard
@@ -324,6 +475,8 @@ export default function AnalyticsDashboard() {
             icon={AiOutlineTeam}
             iconColor="bg-gradient-to-br from-pink-500 to-pink-600"
             onClick={() => handleCardClick('mentorsRegistered')}
+            metricKey="mentorsRegistered"
+            isSelected={selectedMetric === 'mentorsRegistered'}
           />
           
           <StatCard
@@ -334,10 +487,11 @@ export default function AnalyticsDashboard() {
             icon={AiOutlineShop}
             iconColor="bg-gradient-to-br from-cyan-500 to-cyan-600"
             onClick={() => handleCardClick('activeJobs')}
+            metricKey="activeJobs"
+            isSelected={selectedMetric === 'activeJobs'}
           />
         </div>
 
-        {/* Dynamic Graph Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -346,19 +500,19 @@ export default function AnalyticsDashboard() {
         >
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-bold text-white mb-1">Platform Activity</h2>
+              <h2 className="text-xl font-bold text-white mb-1">
+                {selectedMetric === 'all' ? 'All Metrics' : 
+                 selectedMetric === 'performance' ? 'Overall Performance' :
+                 metricConfigs[selectedMetric]?.label}
+              </h2>
               <div className="flex items-center gap-4">
                 <p className="text-3xl font-bold text-white">
-                  {analytics.uniqueVisitors.value.toLocaleString()}
+                  {selectedMetric === 'performance' 
+                    ? `${calculateOverallPerformance()}%`
+                    : selectedMetric === 'all' 
+                    ? 'Multiple Metrics'
+                    : (analytics[selectedMetric]?.value || 0).toLocaleString()}
                 </p>
-                <span className={`text-sm font-semibold flex items-center ${
-                  analytics.uniqueVisitors.change > 0 ? 'text-green-400' : 
-                  analytics.uniqueVisitors.change < 0 ? 'text-red-400' : 'text-gray-400'
-                }`}>
-                  {analytics.uniqueVisitors.change > 0 && <span className="mr-1">↑</span>}
-                  {analytics.uniqueVisitors.change < 0 && <span className="mr-1">↓</span>}
-                  {Math.abs(analytics.uniqueVisitors.change)}% vs prev. period
-                </span>
               </div>
             </div>
             <div className="flex gap-2 bg-gray-800 rounded-lg p-1 border border-gray-700">
@@ -388,73 +542,58 @@ export default function AnalyticsDashboard() {
               </button>
             </div>
           </div>
+
+          <div className="flex gap-2 mb-4 flex-wrap">
+            <button
+              onClick={() => setSelectedMetric('performance')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                selectedMetric === 'performance'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              Overall Performance
+            </button>
+            <button
+              onClick={() => setSelectedMetric('all')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                selectedMetric === 'all'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              All Metrics
+            </button>
+            {Object.keys(metricConfigs).map(key => (
+              <button
+                key={key}
+                onClick={() => setSelectedMetric(key)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors flex items-center gap-2 ${
+                  selectedMetric === key
+                    ? 'text-white'
+                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                }`}
+                style={selectedMetric === key ? { backgroundColor: metricConfigs[key].color } : {}}
+              >
+                <span 
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: metricConfigs[key].color }}
+                />
+                {metricConfigs[key].label}
+              </button>
+            ))}
+          </div>
           
-          {/* Graph Container */}
-          <div className="relative h-48 mt-4">
+          <div className="relative h-64 mt-4">
             <svg className="w-full h-full" viewBox="0 0 800 200" preserveAspectRatio="none">
-              {/* Grid lines */}
               <line x1="0" y1="50" x2="800" y2="50" stroke="#374151" strokeWidth="1" strokeDasharray="5,5" opacity="0.3"/>
               <line x1="0" y1="100" x2="800" y2="100" stroke="#374151" strokeWidth="1" strokeDasharray="5,5" opacity="0.5"/>
               <line x1="0" y1="150" x2="800" y2="150" stroke="#374151" strokeWidth="1" strokeDasharray="5,5" opacity="0.3"/>
               
-              {/* Dynamic activity line */}
-              <path
-                d={generatePath(graphData)}
-                fill="none"
-                stroke="#3B82F6"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              
-              {/* Fill under curve */}
-              <path
-                d={generateFillPath(graphData)}
-                fill="url(#gradient)"
-                opacity="0.3"
-              />
-              
-              {/* Data points */}
-              {graphData.map((value, index) => {
-                const maxValue = Math.max(...graphData, 1);
-                const minValue = Math.min(...graphData, 0);
-                const range = maxValue - minValue || 1;
-                const x = (index / (graphData.length - 1 || 1)) * 800;
-                const y = 200 - ((value - minValue) / range) * 200 * 0.8 - 200 * 0.1;
-                
-                return (
-                  <circle
-                    key={index}
-                    cx={x}
-                    cy={y}
-                    r="4"
-                    fill="#3B82F6"
-                    opacity="0.8"
-                  />
-                );
-              })}
-              
-              {/* Gradient definition */}
-              <defs>
-                <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.4"/>
-                  <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.05"/>
-                </linearGradient>
-              </defs>
+              {renderGraph()}
             </svg>
-            
-            {/* Y-axis labels */}
-            <div className="absolute top-0 -left-2 text-xs text-gray-500 font-medium">
-              {Math.round(getYAxisMax())}
-            </div>
-            <div className="absolute top-1/2 -translate-y-1/2 -left-8 text-xs text-gray-400 font-medium">AVG</div>
-            <div className="absolute top-3/4 -left-2 text-xs text-gray-500 font-medium">
-              {Math.round(getYAxisMax() * 0.5)}
-            </div>
-            <div className="absolute bottom-0 -left-1 text-xs text-gray-500 font-medium">0</div>
           </div>
           
-          {/* X-axis labels */}
           <div className="flex justify-between mt-3 px-2 text-xs text-gray-500 font-medium">
             {getXAxisLabels().map((label, i) => (
               <span key={i}>{label}</span>
@@ -462,7 +601,6 @@ export default function AnalyticsDashboard() {
           </div>
         </motion.div>
 
-        {/* Summary Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
