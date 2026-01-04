@@ -66,6 +66,8 @@ import InterviewReadiness from "./pages/interviews/FinalInterview.jsx";
 import ProfileSetupForm from "./pages/dashboard/ProfileSetupForm";
 import AnalyticsDashboard from "./pages/Admin/analytics.jsx";
 import AllUsers from "./pages/Admin/AllUsers.jsx";
+import { Toaster } from "react-hot-toast";
+
 /* ================= ROUTES ================= */
 
 const AppRoutes = () => {
@@ -172,11 +174,15 @@ const AppRoutes = () => {
 
 function App() {
   return (
+    <>
+          <Toaster position="top-right" />
+
     <Router>
       <LoaderProvider>
         <AppRoutes />
       </LoaderProvider>
     </Router>
+    </>
   );
 }
 

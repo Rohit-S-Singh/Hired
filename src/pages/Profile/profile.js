@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Briefcase, MapPin, Mail, Phone, Github, Linkedin, Globe, Code, ExternalLink, Building2, Calendar, Edit2, User, BookMarked, DollarSign, Target, Users, MessageSquare, Settings, Menu, X, Award, CheckCircle, Clock } from 'lucide-react';
 import { useGlobalContext } from "../AUTH/GlobalContext";
 import { useNavigate } from "react-router-dom";
+import toast, { Toaster } from 'react-hot-toast';
 
 const sidebarItems = [
   { name: 'Profile', url: '/profile', icon: User },
@@ -257,6 +258,31 @@ export default function ProfileSection() {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+            padding: '16px',
+            borderRadius: '8px',
+          },
+          success: {
+            duration: 4000,
+            style: {
+              background: '#10b981',
+            },
+          },
+          error: {
+            duration: 4000,
+            style: {
+              background: '#ef4444',
+            },
+          },
+        }}
+      />
+
       <div className="flex">
         {/* Sidebar - Desktop */}
         <aside className="hidden lg:block w-64 bg-white border-r border-gray-200 sticky top-0 h-screen overflow-y-auto">
