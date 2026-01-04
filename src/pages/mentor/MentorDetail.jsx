@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGlobalContext } from "../AUTH/GlobalContext";
+import toast, { Toaster } from 'react-hot-toast';
 import { 
   Calendar, 
   Clock, 
@@ -26,6 +27,7 @@ const MentorDetail = () => {
 
   const [mentor, setMentor] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [interviewDetails, setInterviewDetails] = useState({
     date: "",
     day: "",
@@ -48,11 +50,11 @@ const MentorDetail = () => {
       if (data.success) {
         setMentor(data.mentor);
       } else {
-        alert("Failed to load mentor details");
+        toast.error("Failed to load mentor details");
       }
     } catch (err) {
       console.error("Error fetching mentor:", err);
-      alert("Something went wrong while loading mentor details");
+      toast.error("Something went wrong while loading mentor details");
     } finally {
       setLoading(false);
     }
@@ -64,12 +66,17 @@ const MentorDetail = () => {
 
   const submitInterviewRequest = async () => {
     if (!loggedInUser) {
-      alert("You must be logged in to request an interview.");
+      toast.error("You must be logged in to request an interview", {
+        duration: 4000,
+        icon: '🔒',
+      });
       return;
     }
 
     if (!interviewDetails.date || !interviewDetails.time || !interviewDetails.message) {
-      alert("Please fill in date, time, and message fields");
+      toast.error("Please fill in date, time, and message fields", {
+        duration: 3000,
+      });
       return;
     }
 
@@ -80,6 +87,8 @@ const MentorDetail = () => {
     };
 
     try {
+      setSubmitting(true);
+      
       const res = await fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/interviews/request`, {
         method: "POST",
         headers: {
@@ -91,7 +100,11 @@ const MentorDetail = () => {
       const data = await res.json();
 
       if (data.success) {
-        alert("Interview request sent successfully!");
+        toast.success("Interview request sent successfully!", {
+          duration: 4000,
+          icon: '✅',
+        });
+        
         setInterviewDetails({
           date: "",
           day: "",
@@ -101,11 +114,17 @@ const MentorDetail = () => {
           additionalDetails: "",
         });
       } else {
-        alert("Failed to send request: " + data.message);
+        toast.error(data.message || "Failed to send request", {
+          duration: 4000,
+        });
       }
     } catch (err) {
       console.error(err);
-      alert("Something went wrong!");
+      toast.error("Something went wrong! Please try again.", {
+        duration: 4000,
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -140,6 +159,31 @@ const MentorDetail = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+            padding: '16px',
+            borderRadius: '8px',
+          },
+          success: {
+            duration: 4000,
+            style: {
+              background: '#10b981',
+            },
+          },
+          error: {
+            duration: 4000,
+            style: {
+              background: '#ef4444',
+            },
+          },
+        }}
+      />
+      
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Profile Card */}
         <div className="bg-white rounded-lg shadow mb-4">
@@ -483,9 +527,17 @@ const MentorDetail = () => {
 
           <button
             onClick={submitInterviewRequest}
-            className="w-full bg-blue-600 text-white font-medium py-3 rounded hover:bg-blue-700 transition-colors"
+            disabled={submitting}
+            className="w-full bg-blue-600 text-white font-medium py-3 rounded hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Send Interview Request
+            {submitting ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Sending Request...
+              </>
+            ) : (
+              'Send Interview Request'
+            )}
           </button>
           
           <p className="mt-3 text-sm text-gray-500 text-center">
@@ -495,6 +547,6 @@ const MentorDetail = () => {
       </div>
     </div>
   );
-};
+};  
 
 export default MentorDetail;
