@@ -115,8 +115,6 @@ const saveProfile = async () => {
     });
   }
 };
-
-
   const tabs = [
     { id: "basic", label: "Basic Info", icon: User },
     {
@@ -132,7 +130,6 @@ const saveProfile = async () => {
 { id: "recommendations", label: "Recommendations", icon: UserCheck },
 
   ]
-
   return (
     <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-6">
       <div className="flex flex-col md:flex-row min-h-[600px]">
