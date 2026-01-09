@@ -66,6 +66,7 @@ import InterviewReadiness from "./pages/interviews/FinalInterview.jsx";
 import ProfileSetupForm from "./pages/dashboard/ProfileSetupForm";
 import AnalyticsDashboard from "./pages/Admin/analytics.jsx";
 import AllUsers from "./pages/Admin/AllUsers.jsx";
+import PricingPage from "./pages/subscription/PricingPage.jsx";
 import { Toaster } from "react-hot-toast";
 
 /* ================= ROUTES ================= */
@@ -92,6 +93,7 @@ const AppRoutes = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/pricing" element={<PricingPage />} />
 
         <Route path="/placement-search" element={<PlacementSearchPage />} />
         <Route path="/profile-search" element={<Profilepage_search />} />
