@@ -193,6 +193,7 @@ export default function PricingPage() {
                     const res = await axios.post(
                       `${process.env.REACT_APP_BACKEND_BASE_URL}/api/payment/create-order`,
                       {
+                        userId: user._id,
                         amount: selectedPlan.price,
                         purpose: selectedPlan.planKey,
                       },
