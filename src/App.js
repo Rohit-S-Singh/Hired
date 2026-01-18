@@ -68,7 +68,11 @@ import AnalyticsDashboard from "./pages/Admin/analytics.jsx";
 import AllUsers from "./pages/Admin/AllUsers.jsx";
 import PricingPage from "./pages/subscription/PricingPage.jsx";
 import { Toaster } from "react-hot-toast";
-
+import RecruiterDashboard from "./pages/recruiter/recruiterDhashboard.jsx";
+import UploadResume from "./pages/Resume/UploadResume.jsx";
+import EditResume from "./pages/Resume/EditResume.jsx";
+import LaTeXEditor from "./pages/Resume/LaTeXEditor.jsx"
+import MyResume from "./pages/Resume/ATSScore.jsx"
 /* ================= ROUTES ================= */
 
 const AppRoutes = () => {
@@ -103,6 +107,7 @@ const AppRoutes = () => {
         <Route path="/SavedJobs" element={<SavedJobs />} />
         <Route path="/job/:id" element={<JobDetails />} />
         <Route path="/events" element={<EventDiscoveryPlatform />} />
+        <Route path="/RecruiterDashboard" element={<RecruiterDashboard />} />
 
         {/* ================= PROTECTED ROUTES ================= */}
         <Route element={<ProtectedLayout />}>
@@ -141,7 +146,10 @@ const AppRoutes = () => {
           <Route path="/email-editor" element={<EmailEditorPage />} />
 
           {/* Resume & Jobs */}
-          <Route path="/resume" element={<ResumeDashboard />} />
+          <Route path="/resume-upload" element={<UploadResume />} />
+          <Route path="/resume-EditResume" element={<EditResume />} />
+          <Route path="/resume-LaTeXEditor" element={<LaTeXEditor />} />
+          <Route path="/resume-ATS-score" element={<MyResume />} />
           <Route path="/jobs-track" element={<AppWithProvider />} />
           <Route path="/post-job" element={<PostJobPage />} />
 
