@@ -101,9 +101,9 @@ const Dashboard = () => {
 
   // Check if user needs to complete profile setup
   useEffect(() => {
-    if (user && user.userType === "None") {
-      setShowProfileSetup(true);
-    } else {
+   if (user && (!user.userType || user.userType === "None")) {
+  setShowProfileSetup(true);
+} else {
       setShowProfileSetup(false);
     }
   }, [user]);

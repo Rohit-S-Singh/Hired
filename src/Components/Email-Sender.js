@@ -57,7 +57,7 @@ const EmailSender = () => {
         console.log(recruitersList);
         await Promise.all(recruitersList.map(async (rec) => {
           try {
-            const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/email-logs`, {
+            const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/email/logs`, {
               params: { recruiterId: rec._id, userEmail: user.email },
               headers: { Authorization: `Bearer ${token}` },
             });
@@ -152,13 +152,19 @@ const EmailSender = () => {
 
       console.log("Final request data:", requestData);
 
-      const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/email-journey`, {
-        data: requestData,
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}` 
-        },
-      });
+     const { data } = await axios.get(
+  `${process.env.REACT_APP_BACKEND_BASE_URL}/api/email/journey`,
+  {
+    params: {
+      email: user.email,
+      threadId: threadId
+    },
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  }
+);
+
 
       console.log("API Response:", data);
       
@@ -254,11 +260,13 @@ const EmailSender = () => {
       
       console.log('Fetching templates for email:', userEmail);
       
-      const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/fetch-followup-templates/${userEmail}`, {
-        headers: { 'Content-Type': 'application/json' },
-        data: { email: userEmail },
-      });
-      
+const { data } = await axios.get(
+  `${process.env.REACT_APP_BACKEND_BASE_URL}/api/fetch-followup-templates/${userEmail}`,
+  {
+    headers: { Authorization: `Bearer ${token}` }
+  }
+);
+
       console.log('Follow-up templates response:', data);
       console.log('Data structure:', JSON.stringify(data, null, 2));
       
@@ -775,12 +783,14 @@ const EmailSender = () => {
                     <button
                       className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                       disabled={!selectedFollowUpTemplate}
-                      onClick={async () => {
-                        setShowFollowUpModal(false);
-                        if (selectedFollowUpTemplate) {
-                          await handleFollowUp(openRowId && recruiters.find(r => r._id === openRowId), selectedFollowUpTemplate.message);
-                        }
-                      }}
+                     onClick={async () => {
+  const recruiter = recruiters.find(r => r._id === openRowId);
+  if (!recruiter) return;
+
+  setShowFollowUpModal(false);
+  await handleFollowUp(recruiter, selectedFollowUpTemplate.message);
+}}
+
                     >
                       Send Follow-up
                     </button>

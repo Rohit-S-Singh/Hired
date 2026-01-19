@@ -366,6 +366,33 @@ export default function ProfileSetupForm({ userId, onComplete }) {
     return errors;
   };
 
+
+   const saveUserTypeOnly = async (selectedType) => {
+  const payload = {
+    userId,
+    userType: selectedType,
+    name: user?.name || "",
+    email: user?.email || ""
+  };
+
+  const res = await fetch(
+    `${process.env.REACT_APP_BACKEND_BASE_URL}/api/first-time-details-fill`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }
+  );
+
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.message || "Failed to save user type");
+  }
+
+  return res.json();
+};
+
+
   const handleSubmit = async () => {
     // Validate form
     const errors = validateForm();
@@ -543,10 +570,19 @@ export default function ProfileSetupForm({ userId, onComplete }) {
 
             <div className="space-y-3">
               <button
-                onClick={() => {
-                  setUserType("student");
-                  setStep("form");
-                }}
+               onClick={async () => {
+  try {
+    setLoading(true);
+    await saveUserTypeOnly("student");
+    setUserType("student");
+    setStep("form");
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    setLoading(false);
+  }
+}}
+
                 className="w-full group relative overflow-hidden bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 border-2 border-blue-200 rounded-xl p-5 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
               >
                 <div className="flex items-center gap-4">
@@ -561,10 +597,19 @@ export default function ProfileSetupForm({ userId, onComplete }) {
               </button>
 
               <button
-                onClick={() => {
-                  setUserType("working_professional");
-                  setStep("form");
-                }}
+             onClick={async () => {
+  try {
+    setLoading(true);
+    await saveUserTypeOnly("working_professional");
+    setUserType("working_professional");
+    setStep("form");
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    setLoading(false);
+  }
+}}
+
                 className="w-full group relative overflow-hidden bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 border-2 border-indigo-200 rounded-xl p-5 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
               >
                 <div className="flex items-center gap-4">
@@ -580,12 +625,7 @@ export default function ProfileSetupForm({ userId, onComplete }) {
             </div>
 
             <div className="mt-6 text-center">
-              <button
-                onClick={handleSkip}
-                className="text-gray-500 hover:text-gray-700 text-sm font-medium transition-colors"
-              >
-                I'll do this later
-              </button>
+           
             </div>
           </div>
         </div>

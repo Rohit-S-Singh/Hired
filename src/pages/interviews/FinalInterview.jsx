@@ -98,7 +98,7 @@ useEffect(() => {
             Start AI Interview
             <ChevronRight className="w-4 h-4" />
           </button>
-          <button className="flex items-center gap-2 bg-white text-gray-700 px-5 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors border border-gray-300"  onClick={() => navigate('/scheduled-interviews')}>
+          <button className="flex items-center gap-2 bg-white text-gray-700 px-5 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors border border-gray-300"  onClick={() => navigate('/find-mentor')}>
             <Calendar className="w-5 h-5" />
             Schedule Mentor Interview
             <ChevronRight className="w-4 h-4" />
