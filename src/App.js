@@ -73,6 +73,7 @@ import UploadResume from "./pages/Resume/UploadResume.jsx";
 import EditResume from "./pages/Resume/EditResume.jsx";
 import LaTeXEditor from "./pages/Resume/LaTeXEditor.jsx"
 import MyResume from "./pages/Resume/ATSScore.jsx"
+import MentorCarousel from "./pages/mentor/MentorCarousel.jsx";
 /* ================= ROUTES ================= */
 
 const AppRoutes = () => {
@@ -109,6 +110,7 @@ const AppRoutes = () => {
         <Route path="/events" element={<EventDiscoveryPlatform />} />
         <Route path="/RecruiterDashboard" element={<RecruiterDashboard />} />
 
+
         {/* ================= PROTECTED ROUTES ================= */}
         <Route element={<ProtectedLayout />}>
           {/* Dashboard */}
@@ -116,6 +118,7 @@ const AppRoutes = () => {
           <Route path="/upskill" element={<Upskill />} />
           <Route path="/application-status" element={<JobApplication />} />
 
+        <Route path="/MentorCarousel" element={<MentorCarousel />} />
           {/* Chat */}
           <Route path="/chat" element={<ChatPage />} />
           
