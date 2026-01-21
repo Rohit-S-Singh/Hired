@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import Mustache from "mustache";
+import { useEffect } from "react";
+
 import Lottie from "lottie-react";
 import emailTemplateAnimation from "../assets/Email-Template.json";
 
@@ -38,6 +40,25 @@ const TemplateEditor = () => {
       </p>
     </div>
   `);
+
+  useEffect(() => {
+  if (!user?.email) return;
+
+  fetch(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/fetch/template?email=${user.email}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        if (data.mainTemplate?.finalHtml) {
+          setTemplate(data.mainTemplate.finalHtml);
+        }
+
+        if (data.followUps?.length > 0) {
+          setFollowUpTemplates(data.followUps);
+        }
+      }
+    })
+    .catch(err => console.log("Fetch template error:", err));
+}, [user]);
 
   const [previewData, setPreviewData] = useState({
     location: "Enter Location",
