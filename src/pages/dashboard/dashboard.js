@@ -4,19 +4,88 @@ import {
   Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import { FaEnvelope, FaBriefcase, FaUserCheck, FaChartLine } from "react-icons/fa";
+import { ArrowRight, Briefcase as BriefcaseIcon } from "lucide-react";
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 import { useGlobalContext } from '../AUTH/GlobalContext.js';
 import FeatureHighlights from '../../Components/FeatureHighlights.js';
 import ProfileSetupForm from './ProfileSetupForm.jsx';
+import JobCard from '../Jobs/JobCard.jsx'; // Import the JobCard component
 
 const formatDate = () => {
   const today = new Date();
   return today.toDateString();
 };
 
+// SaveButton component for job cards
+const SaveButton = ({ jobId, onSaveSuccess }) => {
+  const { user } = useGlobalContext();
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const saveJob = async () => {
+    if (!user) {
+      alert("Please login to save jobs");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      const token = localStorage.getItem("jwtToken");
+
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_BASE_URL}/api/jobs/save`,
+        {
+          userId: user._id,
+          jobId: jobId
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setSaved(true);
+      onSaveSuccess?.();
+
+      setTimeout(() => setSaved(false), 2000);
+    } catch (error) {
+      console.error("Error saving job:", error);
+
+      if (error.response?.status === 409) {
+        alert("Job already saved!");
+      } else {
+        alert("Failed to save job");
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation(); // Prevent card click when saving
+        saveJob();
+      }}
+      disabled={saving || saved}
+      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+        saved
+          ? "bg-green-50 text-green-600 border border-green-200"
+          : "bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100"
+      } ${saving ? "opacity-50 cursor-not-allowed" : ""}`}
+    >
+      {saving ? "Saving..." : saved ? "Saved!" : "Save Job"}
+    </button>
+  );
+};
+
 const Dashboard = () => {
   const { user, setUser } = useGlobalContext();
+  const navigate = useNavigate();
 
   const [applications, setApplications] = useState([]);
   const [coldEmailsSent, setColdEmailsSent] = useState(0);
@@ -32,9 +101,9 @@ const Dashboard = () => {
 
   // Check if user needs to complete profile setup
   useEffect(() => {
-    if (user && user.userType === "None") {
-      setShowProfileSetup(true);
-    } else {
+   if (user && (!user.userType || user.userType === "None")) {
+  setShowProfileSetup(true);
+} else {
       setShowProfileSetup(false);
     }
   }, [user]);
@@ -68,7 +137,7 @@ const Dashboard = () => {
         const token = localStorage.getItem('jwtToken');
         
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_BASE_URL}/api/jobs/random`,
+          `${process.env.REACT_APP_BACKEND_BASE_URL}/api/jobs/random?limit=6`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -108,7 +177,7 @@ const Dashboard = () => {
   };
 
   // Show ProfileSetupForm if userType is "None"
-if (showProfileSetup && user?._id) {
+  if (showProfileSetup && user?._id) {
     return (
       <ProfileSetupForm
         userId={user._id}
@@ -201,60 +270,46 @@ if (showProfileSetup && user?._id) {
 
       <FeatureHighlights />
 
-      {/* Jobs Section */}
+      {/* Jobs Section - Updated with JobCard */}
       <div className="mt-8 px-4">
-        <h2 className="text-2xl font-bold mb-6 text-center">Explore Jobs</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">Explore Jobs</h2>
+          <button
+            onClick={() => navigate('/random-jobs')}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            View All Jobs
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
         
         {loadingJobs ? (
-          <div className="text-center py-8">
-            <p className="text-gray-600">Loading jobs...</p>
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600 text-lg font-medium">Loading opportunities...</p>
+            </div>
           </div>
         ) : jobs.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-600">No jobs available at the moment</p>
+          <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+            <BriefcaseIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Jobs Available</h3>
+            <p className="text-gray-600">Check back soon for new opportunities</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {jobs.slice(0, 6).map((job) => (
+            {jobs.map((job, index) => (
               <div
                 key={job._id}
-                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border border-gray-200"
+                className="group animate-fade-in bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer"
+                style={{ animationDelay: `${index * 0.05}s` }}
               >
-                <div className="mb-4">
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">
-                    {job.title}
-                  </h3>
-                  
-                  {job.company && (
-                    <p className="text-gray-600 font-medium mb-1">{job.company}</p>
-                  )}
-                  
-                  {job.location && (
-                    <p className="text-sm text-gray-500">📍 {job.location}</p>
-                  )}
-                </div>
-                
-                {job.description && (
-                  <p className="text-sm text-gray-700 mb-4 line-clamp-3">
-                    {job.description}
-                  </p>
-                )}
-                
-                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                  {job.salary && (
-                    <span className="text-sm font-semibold text-green-600">
-                      {job.salary}
-                    </span>
-                  )}
-                  
-                  <button
-                    onClick={() => {
-                      console.log('Apply to job:', job._id);
-                    }}
-                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Apply Now
-                  </button>
+                <JobCard job={job} viewMode="grid" />
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <SaveButton 
+                    jobId={job._id} 
+                    onSaveSuccess={() => console.log(`Job ${job._id} saved!`)} 
+                  />
                 </div>
               </div>
             ))}
@@ -262,6 +317,23 @@ if (showProfileSetup && user?._id) {
         )}
       </div>
 
+      <style jsx>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in {
+          animation: fade-in 0.4s ease-out forwards;
+          opacity: 0;
+        }
+      `}</style>
     </div>
   );
 };

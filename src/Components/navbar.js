@@ -122,8 +122,14 @@ const Navbar = () => {
     <nav className="bg-white shadow-sm p-4 relative">
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo */}
-        <Link to="/home">
+        <Link to="/home" className="flex items-center gap-2">
           <img src="/hired.png" alt="Hired" className="h-14 cursor-pointer" />
+
+          {user?.isPremium && (
+            <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow">
+              PREMIUM
+            </span>
+          )}
         </Link>
 
         {/* Mobile Menu Toggle */}
@@ -178,6 +184,12 @@ const Navbar = () => {
                 className="block lg:inline-block text-gray-700 text-sm hover:text-blue-500 py-2 lg:py-0"
               >
                 Jobs
+              </Link>
+              <Link
+                to="/resume-upload"
+                className="block lg:inline-block text-gray-700 text-sm hover:text-blue-500 py-2 lg:py-0"
+              >
+                Resume
               </Link>
 
               {/* Admin Dashboard - Only for admin role */}

@@ -1,5 +1,6 @@
 import React from "react";
 import { CheckCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const plans = [
   {
@@ -41,6 +42,7 @@ const plans = [
 ];
 
 export default function PricingPage() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-white py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto text-center">
@@ -69,6 +71,7 @@ export default function PricingPage() {
                 </ul>
               </div>
               <button
+              onClick={() => navigate("/pricing")}
                 className={`w-full py-2 px-4 text-white font-semibold rounded-md transition-colors duration-300 ${plan.buttonColor}`}
               >
                 Choose {plan.name}

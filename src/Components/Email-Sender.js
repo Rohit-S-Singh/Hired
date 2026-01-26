@@ -15,6 +15,8 @@ import axios from 'axios';
 import { useGlobalContext } from '../pages/AUTH/GlobalContext';
 
 const EmailSender = () => {
+  console.log("EMAIL SENDER COMPONENT RENDERED");
+
   const { user } = useGlobalContext();
   const token = localStorage.getItem("jwtToken");
   const [isConnected, setIsConnected] = useState(false);
@@ -55,9 +57,11 @@ const EmailSender = () => {
         const recruitersList = recruiterData?.recruiters || [];
         const logsMap = {};
         console.log(recruitersList);
+
+
         await Promise.all(recruitersList.map(async (rec) => {
           try {
-            const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/email-logs`, {
+            const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/email/logs`, {
               params: { recruiterId: rec._id, userEmail: user.email },
               headers: { Authorization: `Bearer ${token}` },
             });
@@ -152,13 +156,19 @@ const EmailSender = () => {
 
       console.log("Final request data:", requestData);
 
-      const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/email-journey`, {
-        data: requestData,
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}` 
-        },
-      });
+     const { data } = await axios.get(
+  `${process.env.REACT_APP_BACKEND_BASE_URL}/api/email/journey`,
+  {
+    params: {
+      email: user.email,
+      threadId: threadId
+    },
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  }
+);
+
 
       console.log("API Response:", data);
       
@@ -205,6 +215,9 @@ const EmailSender = () => {
   };
 
   const handleExcelUpload = async (e) => {
+
+    console.log("checking on uopload");
+    
     const file = e.target.files[0];
     if (!file) return;
 
@@ -254,11 +267,13 @@ const EmailSender = () => {
       
       console.log('Fetching templates for email:', userEmail);
       
-      const { data } = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/fetch-followup-templates/${userEmail}`, {
-        headers: { 'Content-Type': 'application/json' },
-        data: { email: userEmail },
-      });
-      
+const { data } = await axios.get(
+  `${process.env.REACT_APP_BACKEND_BASE_URL}/api/fetch-followup-templates/${userEmail}`,
+  {
+    headers: { Authorization: `Bearer ${token}` }
+  }
+);
+
       console.log('Follow-up templates response:', data);
       console.log('Data structure:', JSON.stringify(data, null, 2));
       
@@ -290,53 +305,65 @@ const EmailSender = () => {
   };
 
 
-  const handleSendMail = async (recruiter) => {
-    if (!resumeFile) {
-      alert("Please upload your resume before sending the email.");
+const handleSendMail = async (recruiter) => {
+  console.log("=== SEND EMAIL DEBUG ===");
+  console.log("User email:", user?.email);
+  console.log("Recruiter:", recruiter);
+  console.log("Resume file:", resumeFile);
+  
+  if (!resumeFile) {
+    alert("Please upload your resume before sending the email.");
+    return;
+  }
+
+  setSendingEmail(true);
+  try {
+    // Fetch the template
+    console.log("Fetching template...");
+    const response = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/email/template`, {
+      params: { email: user?.email },
+    });
+    
+    console.log("Template response:", response.data);
+    
+    let finalHtml = '';
+    if (response.data && response.data.success && response.data.mainTemplate?.finalHtml) {
+      finalHtml = response.data.mainTemplate.finalHtml;
+      console.log("Template loaded successfully");
+    } else {
+      console.error("No template found");
+      alert('Failed to fetch email template. Please create a template first.');
+      setSendingEmail(false);
       return;
     }
 
-    setSendingEmail(true);
-    try {
-      // Fetch the template from the backend
-      let finalHtml = '';
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/get-html-template`, {
-          params: { email: user?.email },
-        });
-        if (response.data && response.data.success && response.data.htmlEmailTemplate) {
-          finalHtml = response.data.htmlEmailTemplate.finalHtml;
-        }
-      } catch (fetchTemplateError) {
-        console.error('Error fetching HTML template:', fetchTemplateError);
-        alert('Failed to fetch email template.');
-        setSendingEmail(false);
-        return;
-      }
+    // Replace variables
+    finalHtml = finalHtml.replace(/{{\s*recruiter\.name\s*}}/g, recruiter.name);
+    finalHtml = finalHtml.replace(/{{\s*name\s*}}/g, user?.username || user?.name || 'User');
 
-      console.log("finalHtml", finalHtml);
-      // Replace variables in the template
-      finalHtml = finalHtml.replace(/{{\s*recruiter\.name\s*}}/g, recruiter.name);
-      finalHtml = finalHtml.replace(/{{\s*name\s*}}/g, user?.username || 'User');
-      finalHtml = finalHtml.replace(/{{\s*name\s*}}/g, user?.username || 'User');
-      // Remove all logic that replaces {{introduction}} and {{experience}} in the email template
+    console.log("Preparing form data...");
+    const formData = new FormData();
+    formData.append("from", user?.email);
+    formData.append("to", recruiter.email);
+    formData.append("subject", "Application For Engineering Roles (SDE-1)");
+    formData.append("body", finalHtml);
+    formData.append("attachment", resumeFile);
 
-      const formData = new FormData();
-      formData.append("from", user?.email);
-      formData.append("to", recruiter.email);
-      formData.append("subject", "Application For Engineering Roles (SDE-1)");
-      formData.append("body", finalHtml);
-      formData.append("attachment", resumeFile);
-
-      await axios.post(`${process.env.REACT_APP_BACKEND_BASE_URL}/api/send-email`, formData, {
+    console.log("Sending email...");
+    const sendResponse = await axios.post(
+      `${process.env.REACT_APP_BACKEND_BASE_URL}/api/email/send`, 
+      formData, 
+      {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         },
-      });
+      }
+    );
 
-      // Save the HTML template to the backend (optional, if you want to keep this ste
+    console.log("Email sent response:", sendResponse.data);
 
+    if (sendResponse.data.success) {
       setRecruiters(prev =>
         prev.map(r =>
           r._id === recruiter._id ? { 
@@ -346,12 +373,31 @@ const EmailSender = () => {
           } : r
         )
       );
-    } catch (error) {
-      console.error('Error sending email:', error);
-    } finally {
-      setTimeout(() => setSendingEmail(false), 1500);
+      alert("Email sent successfully!");
+    } else {
+      alert("Failed to send email: " + sendResponse.data.message);
     }
-  };
+  } catch (error) {
+    console.error('Error sending email:', error);
+    console.error('Error details:', error.response?.data);
+    
+    // Handle specific error cases
+    if (error.response?.data?.requiresReauth) {
+      alert('Your Gmail connection has expired. Please reconnect your Gmail account.');
+      // Optionally redirect to connection page
+      // navigate('/email-sender');
+    } else if (error.response?.data?.requiresAuth) {
+      alert('Please connect your Gmail account first before sending emails.');
+    } else {
+      alert('Failed to send email: ' + (error.response?.data?.message || error.message));
+    }
+  } finally {
+    setTimeout(() => setSendingEmail(false), 1500);
+  }
+};
+
+
+
 
   const handleFollowUp = async (recruiter, followUpMessage) => {
     setSendingEmail(true);
@@ -775,12 +821,14 @@ const EmailSender = () => {
                     <button
                       className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                       disabled={!selectedFollowUpTemplate}
-                      onClick={async () => {
-                        setShowFollowUpModal(false);
-                        if (selectedFollowUpTemplate) {
-                          await handleFollowUp(openRowId && recruiters.find(r => r._id === openRowId), selectedFollowUpTemplate.message);
-                        }
-                      }}
+                     onClick={async () => {
+  const recruiter = recruiters.find(r => r._id === openRowId);
+  if (!recruiter) return;
+
+  setShowFollowUpModal(false);
+  await handleFollowUp(recruiter, selectedFollowUpTemplate.message);
+}}
+
                     >
                       Send Follow-up
                     </button>

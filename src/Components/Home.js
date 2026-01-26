@@ -6,7 +6,6 @@ import MentorCarousel from "./MentorCarousel.js";
 import HelpSection from "./Faqs.js";
 import FAQSection from "./Faq.js";
 import { useGlobalContext } from "../pages/AUTH/GlobalContext.js";
-
 const HomePage = () => {
     const navigate = useNavigate();
       const { setIsLoggedIn, setUser } = useGlobalContext();
@@ -85,7 +84,7 @@ useEffect(() => {
           <p className="text-lg text-gray-600 mb-8">
             Personalized mock interviews, instant feedback, and real-world questions to help you crack your dream job.
           </p>
-          <button className="bg-blue-600 text-white px-6 py-3 rounded font-semibold hover:bg-blue-700">
+          <button onClick={() => navigate("/pricing")} className="bg-blue-600 text-white px-6 py-3 rounded font-semibold hover:bg-blue-700">
             Get Started for Free
           </button>
         </section>

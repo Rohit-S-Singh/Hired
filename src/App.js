@@ -67,6 +67,14 @@ import ProfileSetupForm from "./pages/dashboard/ProfileSetupForm";
 import AnalyticsDashboard from "./pages/Admin/analytics.jsx";
 import AllUsers from "./pages/Admin/AllUsers.jsx";
 import AiInterviewPage from "./Components/AiInterview";
+import PricingPage from "./pages/subscription/PricingPage.jsx";
+import { Toaster } from "react-hot-toast";
+import RecruiterDashboard from "./pages/recruiter/recruiterDhashboard.jsx";
+import UploadResume from "./pages/Resume/UploadResume.jsx";
+import EditResume from "./pages/Resume/EditResume.jsx";
+import LaTeXEditor from "./pages/Resume/LaTeXEditor.jsx"
+import MyResume from "./pages/Resume/ATSScore.jsx"
+import MentorCarousel from "./pages/mentor/MentorCarousel.jsx";
 /* ================= ROUTES ================= */
 
 const AppRoutes = () => {
@@ -91,6 +99,7 @@ const AppRoutes = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/pricing" element={<PricingPage />} />
 
         <Route path="/placement-search" element={<PlacementSearchPage />} />
         <Route path="/profile-search" element={<Profilepage_search />} />
@@ -100,6 +109,8 @@ const AppRoutes = () => {
         <Route path="/SavedJobs" element={<SavedJobs />} />
         <Route path="/job/:id" element={<JobDetails />} />
         <Route path="/events" element={<EventDiscoveryPlatform />} />
+        <Route path="/RecruiterDashboard" element={<RecruiterDashboard />} />
+
 
         {/* ================= PROTECTED ROUTES ================= */}
         <Route element={<ProtectedLayout />}>
@@ -108,6 +119,7 @@ const AppRoutes = () => {
           <Route path="/upskill" element={<Upskill />} />
           <Route path="/application-status" element={<JobApplication />} />
 
+        <Route path="/MentorCarousel" element={<MentorCarousel />} />
           {/* Chat */}
           <Route path="/chat" element={<ChatPage />} />
           
@@ -138,7 +150,10 @@ const AppRoutes = () => {
           <Route path="/email-editor" element={<EmailEditorPage />} />
 
           {/* Resume & Jobs */}
-          <Route path="/resume" element={<ResumeDashboard />} />
+          <Route path="/resume-upload" element={<UploadResume />} />
+          <Route path="/resume-EditResume" element={<EditResume />} />
+          <Route path="/resume-LaTeXEditor" element={<LaTeXEditor />} />
+          <Route path="/resume-ATS-score" element={<MyResume />} />
           <Route path="/jobs-track" element={<AppWithProvider />} />
           <Route path="/post-job" element={<PostJobPage />} />
 
@@ -153,6 +168,7 @@ const AppRoutes = () => {
           <Route path="/AllUsers" element={<AllUsers />} />
           <Route path="/AnalyticsDashboard" element={<AnalyticsDashboard />} />
           <Route path="/ai-interview" element={<AiInterviewPage />} />
+          {/* <Route path="/AnalyticsDashboard" element={<AnalyticsDashboard />} /> */}
 
 
           {/*pracrtice*/}
@@ -174,11 +190,15 @@ const AppRoutes = () => {
 
 function App() {
   return (
+    <>
+          <Toaster position="top-right" />
+
     <Router>
       <LoaderProvider>
         <AppRoutes />
       </LoaderProvider>
     </Router>
+    </>
   );
 }
 

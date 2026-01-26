@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import { useGlobalContext } from "../AUTH/GlobalContext"
 import { Trophy, UserCheck } from "lucide-react"
+import toast from "react-hot-toast";
 
 
 export default function EditProfileForm() {
@@ -73,6 +74,8 @@ export default function EditProfileForm() {
   }
 
 const saveProfile = async () => {
+  const toastId = toast.loading("Saving profile...");
+
   try {
     const payload = {
       userId: userProfile.userId, // 🔴 REQUIRED
@@ -91,17 +94,27 @@ const saveProfile = async () => {
     );
 
     const data = await res.json();
-if (res.status !== 200) {
-  throw new Error(data.message);
-}
+
+    if (res.status !== 200) {
+      throw new Error(data.message || "Profile update failed");
+    }
+
     setUserProfile(data.profile);
-    alert("Profile updated successfully!");
+
+    // ✅ SUCCESS TOAST
+    toast.success("Profile updated successfully!", {
+      id: toastId,
+    });
+
   } catch (err) {
     console.error(err);
-    alert("Failed to update profile");
+
+    // ❌ ERROR TOAST
+    toast.error(err.message || "Failed to update profile", {
+      id: toastId,
+    });
   }
 };
-
   const tabs = [
     { id: "basic", label: "Basic Info", icon: User },
     {
@@ -117,7 +130,6 @@ if (res.status !== 200) {
 { id: "recommendations", label: "Recommendations", icon: UserCheck },
 
   ]
-
   return (
     <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-6">
       <div className="flex flex-col md:flex-row min-h-[600px]">

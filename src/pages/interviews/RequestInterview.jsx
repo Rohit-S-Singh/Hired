@@ -2,10 +2,17 @@
 import React, { useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 
+import { useGlobalContext } from "../AUTH/GlobalContext";
+
 const RequestInterview = () => {
   const { mentorId } = useParams();
-  const userId = new URLSearchParams(useLocation().search).get("user");
+  // const userId = new URLSearchParams(useLocation().search).get("user");
+  const { user } = useGlobalContext();
+  const userId = user ? user._id : null;
 
+  console.log(userId);
+  console.log(mentorId);
+  
   const [formData, setFormData] = useState({
     date: "",
     day: "",
@@ -27,7 +34,11 @@ const RequestInterview = () => {
       const res = await fetch("/api/request-interview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, mentorId, userId }),
+body: JSON.stringify({
+  ...formData,
+  mentor: mentorId,
+  user: userId
+}),
       });
       const data = await res.json();
       if (data.success) setSuccessMsg("✅ Interview request sent successfully!");
