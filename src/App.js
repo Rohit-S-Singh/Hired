@@ -66,6 +66,7 @@ import InterviewReadiness from "./pages/interviews/FinalInterview.jsx";
 import ProfileSetupForm from "./pages/dashboard/ProfileSetupForm";
 import AnalyticsDashboard from "./pages/Admin/analytics.jsx";
 import AllUsers from "./pages/Admin/AllUsers.jsx";
+import AiInterviewPage from "./Components/AiInterview";
 /* ================= ROUTES ================= */
 
 const AppRoutes = () => {
@@ -151,6 +152,7 @@ const AppRoutes = () => {
           <Route path="/AdminDashboard" element={<AdminDashboard />} />
           <Route path="/AllUsers" element={<AllUsers />} />
           <Route path="/AnalyticsDashboard" element={<AnalyticsDashboard />} />
+          <Route path="/ai-interview" element={<AiInterviewPage />} />
 
 
           {/*pracrtice*/}

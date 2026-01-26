@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import  { useState, useEffect } from "react";
 import { useGlobalContext } from "../AUTH/GlobalContext";
 
+
+
 const InterviewReadiness = () => {
   const { user: loggedInUser } = useGlobalContext();
   const [upcomingInterviews, setUpcomingInterviews] = useState([]);
@@ -93,7 +95,7 @@ useEffect(() => {
 
         {/* Action Buttons */}
         <div className="flex gap-4 mb-8">
-          <button className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+          <button onClick={() => navigate("/ai-interview")} className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
             <MessageSquare className="w-5 h-5" />
             Start AI Interview
             <ChevronRight className="w-4 h-4" />
