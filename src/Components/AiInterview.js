@@ -74,7 +74,7 @@ export default function AiInterviewPage() {
       
           vapi.on("message", (message) => {
             if (message.type === "transcript") {
-              console.log(`${message.role}: ${message.transcript}`);
+              // console.log(`${message.role}: ${message.transcript}`);
             }
           });
         } catch (err) {
