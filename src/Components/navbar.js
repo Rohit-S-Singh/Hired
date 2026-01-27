@@ -192,6 +192,13 @@ const Navbar = () => {
                 Resume
               </Link>
 
+            <Link
+                  to="/AdminDashboard"
+                  className="block lg:inline-block text-gray-700 text-sm hover:text-blue-500 py-2 lg:py-0"
+                >
+                  Admin
+                </Link>
+
               {/* Admin Dashboard - Only for admin role */}
               {isAdmin && (
                 <Link
