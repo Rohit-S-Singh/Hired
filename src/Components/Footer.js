@@ -8,7 +8,7 @@ const Footer = () => {
 
                 {/* Logo & Description */}
                 <div>
-                    <h1 className="text-2xl font-bold text-white mb-4">Hiredd</h1>
+                    <h1 className="text-2xl font-bold text-white mb-4">RealHired</h1>
                     <p className="text-sm text-gray-400">
                         Building modern solutions for real-world problems. Let’s grow together.
                     </p>
@@ -59,7 +59,7 @@ const Footer = () => {
 
             {/* Footer Bottom */}
             <div className="mt-10 border-t border-gray-700 pt-5 text-center text-sm text-gray-500">
-                © {new Date().getFullYear()} Hiredd. All rights reserved.<br/>
+                © {new Date().getFullYear()} RealHired. All rights reserved.<br/>
                 {/* <span className="text-gray-400">Founder & CEO: Rohit Shekhar Singh</span> */}
             </div>
         </footer>
