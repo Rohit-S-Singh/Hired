@@ -26,6 +26,7 @@ import JobDetails from "./pages/Jobs/JobDetails";
 import EventDiscoveryPlatform from "./pages/events/Events";
 import RandomJobs from "./pages/Jobs/RandomJobs";
 import SavedJobs from "./pages/Jobs/SavedJobs";
+import PrivacyPolicy from "./Components/PrivacyPolicy.js";
 
 /* ================= PROTECTED PAGES ================= */
 import Overview from "./pages/dashboard/dashboard";
@@ -100,6 +101,8 @@ const AppRoutes = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        
 
         <Route path="/placement-search" element={<PlacementSearchPage />} />
         <Route path="/profile-search" element={<Profilepage_search />} />

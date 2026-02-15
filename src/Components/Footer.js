@@ -26,15 +26,50 @@ const Footer = () => {
                 </div>
 
                 {/* Resources */}
-                <div>
-                    <h2 className="text-lg font-semibold text-white mb-4">Resources</h2>
-                    <ul className="space-y-2 text-sm">
-                        <li><a href="#" className="hover:text-white transition">Privacy Policy</a></li>
-                        <li><a href="#" className="hover:text-white transition">Terms of Service</a></li>
-                        <li><a href="#" className="hover:text-white transition">Help Center</a></li>
-                        <li><a href="#" className="hover:text-white transition">FAQs</a></li>
-                    </ul>
-                </div>
+          {/* Resources */}
+<div>
+    <h2 className="text-lg font-semibold text-white mb-4">Resources</h2>
+    <ul className="space-y-2 text-sm">
+
+        <li>
+            <Link 
+                to="/privacy-policy"
+                className="hover:text-white transition"
+            >
+                Privacy Policy
+            </Link>
+        </li>
+
+        <li>
+            <Link 
+                to="/terms"
+                className="hover:text-white transition"
+            >
+                Terms of Service
+            </Link>
+        </li>
+
+        <li>
+            <Link 
+                to="/help"
+                className="hover:text-white transition"
+            >
+                Help Center
+            </Link>
+        </li>
+
+        <li>
+            <Link 
+                to="/faqs"
+                className="hover:text-white transition"
+            >
+                FAQs
+            </Link>
+        </li>
+
+    </ul>
+</div>
+
 
                 {/* Social & Newsletter */}
                 <div>
